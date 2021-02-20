@@ -5,7 +5,7 @@ import Browser
 import Html exposing (div, table, td, text, tr)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
-import List exposing (concat, concatMap, filter, foldl, indexedMap, map, member, repeat, reverse)
+import List exposing (append, concat, concatMap, filter, foldl, indexedMap, map, member, repeat, reverse)
 import List.Extra exposing (getAt)
 import Maybe exposing (Maybe(..), withDefault)
 import Maybe.Extra
@@ -209,8 +209,15 @@ update message ( turn, board, state ) =
             ( turn, board, Moved )
 
         ( Move i_ j_ isPromoted, Touched i j ) ->
+            let
+                isAlreadyPromoted =
+                    getAt2 i j board
+                        |> withDefault Nothing
+                        |> Maybe.map .isPromoted
+                        |> withDefault False
+            in
             ( turn + 1
-            , updateBoard i j i_ j_ isPromoted board
+            , updateBoard i j i_ j_ (isPromoted || isAlreadyPromoted) board
             , Moved
             )
 
@@ -258,207 +265,307 @@ colorFromIndice i j board =
         |> Maybe.map .isBlack
 
 
-view : Model -> Html.Html Message
-view ( turn, board, state ) =
+canReach : Int -> Int -> Board -> Bool -> Int -> Int -> Bool
+canReach iTouch jTouch board isBlackTurn iFocus jFocus =
+    let
+        possibleMoves :
+            Int
+            -> Int
+            -> (Int -> Int -> ( Int, Int ))
+            -> List ( Int, Int )
+        possibleMoves i j f =
+            let
+                ( i_, j_ ) =
+                    f i j
+            in
+            if List.any (\n -> n < 0 || 9 <= n) [ i_, j_ ] then
+                []
+
+            else
+                case colorFromIndice i_ j_ board of
+                    Nothing ->
+                        ( i_, j_ ) :: possibleMoves i_ j_ f
+
+                    Just isBlack ->
+                        if isBlack == isBlackTurn then
+                            []
+
+                        else
+                            [ ( i_, j_ ) ]
+    in
+    getAt2 iTouch jTouch board
+        |> Maybe.map
+            (Maybe.map
+                (\piece ->
+                    let
+                        move n it =
+                            if isBlackTurn then
+                                it - n
+
+                            else
+                                it + n
+
+                        mapMove i j =
+                            map (\( di, dj ) -> ( move di i, move dj j ))
+
+                        { kind, isPromoted } =
+                            piece
+                    in
+                    -- FIXME: refactor
+                    let
+                        gold =
+                            [ ( 1, -1 ), ( 1, 0 ), ( 1, 1 ), ( 0, -1 ), ( 0, 1 ), ( -1, 0 ) ]
+                                |> mapMove iTouch jTouch
+                                |> filter (\( i, j ) -> colorFromIndice i j board /= Just isBlackTurn)
+                                |> member ( iFocus, jFocus )
+                    in
+                    case ( kind, isPromoted ) of
+                        ( P, False ) ->
+                            [ ( 1, 0 ) ]
+                                |> mapMove iTouch jTouch
+                                |> filter (\( i, j ) -> colorFromIndice i j board /= Just isBlackTurn)
+                                |> member ( iFocus, jFocus )
+
+                        ( N, False ) ->
+                            [ ( 2, -1 ), ( 2, 1 ) ]
+                                |> mapMove iTouch jTouch
+                                |> filter (\( i, j ) -> colorFromIndice i j board /= Just isBlackTurn)
+                                |> member ( iFocus, jFocus )
+
+                        ( S, False ) ->
+                            [ ( 1, -1 ), ( 1, 0 ), ( 1, 1 ), ( -1, -1 ), ( -1, 1 ) ]
+                                |> mapMove iTouch jTouch
+                                |> filter (\( i, j ) -> colorFromIndice i j board /= Just isBlackTurn)
+                                |> member ( iFocus, jFocus )
+
+                        ( G, False ) ->
+                            gold
+
+                        ( K, False ) ->
+                            product [ -1, 0, 1 ] [ -1, 0, 1 ]
+                                |> mapMove iTouch jTouch
+                                |> filter (\( i, j ) -> colorFromIndice i j board /= Just isBlackTurn)
+                                |> member ( iFocus, jFocus )
+
+                        ( L, False ) ->
+                            possibleMoves iTouch jTouch (\i -> \j -> ( move 1 i, j ))
+                                |> member ( iFocus, jFocus )
+
+                        ( B, False ) ->
+                            product [ -1, 1 ] [ -1, 1 ]
+                                |> map (\( di, dj ) -> possibleMoves iTouch jTouch (\i -> \j -> ( move di i, move dj j )))
+                                |> concat
+                                |> member ( iFocus, jFocus )
+
+                        ( R, False ) ->
+                            [ ( -1, 0 ), ( 0, -1 ), ( 0, 1 ), ( 1, 0 ) ]
+                                |> map (\( di, dj ) -> possibleMoves iTouch jTouch (\i -> \j -> ( move di i, move dj j )))
+                                |> concat
+                                |> member ( iFocus, jFocus )
+
+                        ( B, True ) ->
+                            -- FIXME
+                            False
+
+                        ( R, True ) ->
+                            -- FIXME
+                            False
+
+                        ( _, True ) ->
+                            gold
+                )
+            )
+        |> Maybe.Extra.join
+        |> withDefault False
+
+
+canPromote : Int -> Int -> Board -> Bool -> Int -> Int -> Bool
+canPromote iTouch jTouch board isBlackTurn iFocus jFocus =
+    let
+        maybeSquareTouch =
+            getAt2 iTouch jTouch board
+    in
+    not (maybeSquareTouch |> Maybe.map (Maybe.map .isPromoted) |> Maybe.Extra.join |> withDefault False)
+        && canReach iTouch jTouch board isBlackTurn iFocus jFocus
+        && (if isBlackTurn then
+                iFocus < 3
+
+            else
+                6 <= iFocus
+           )
+
+
+squareToBackgroundColor square =
+    style "background-color" <|
+        case color square of
+            Nothing ->
+                "#888"
+
+            Just False ->
+                "#FFF"
+
+            Just True ->
+                "#000"
+
+
+squareToTd turn board state iFocus jFocus squareFocus =
     let
         isBlackTurn =
             isOdd turn
 
-        squareToTd iFocus jFocus square_ =
-            let
-                styles =
-                    [ style "border" "1px solid"
-                    , style "width" "64px"
-                    , style "height" "64px"
-                    , style "text-align" "center"
-                    , style "vertical-align" "middle"
-                    , style "color" "#888"
-                    ]
+        styles =
+            [ style "width" "4em"
+            , style "height" "4em"
+            , style "text-align" "center"
+            , style "vertical-align" "middle"
+            , style "color" "#888"
+            , style "padding" "0"
+            , style "box-sizing" "border-box"
+            ]
 
-                attributes =
-                    case ( state, square_ ) of
-                        ( Moved, Nothing ) ->
+        attributes =
+            case state of
+                Moved ->
+                    case squareFocus of
+                        Nothing ->
                             style "background-color" "#888" :: styles
 
-                        ( Moved, Just piece ) ->
+                        Just piece ->
                             let
                                 -- FIXME
-                                canMove =
+                                canTouch =
                                     isBlackTurn
                                         == .isBlack piece
                             in
-                            if canMove then
-                                (style "background-color" <|
-                                    case color square_ of
-                                        Nothing ->
-                                            "#888"
+                            if canTouch then
+                                squareToBackgroundColor squareFocus
+                                    :: style "border"
+                                        (if color squareFocus == Just False then
+                                            "1px solid #888"
 
-                                        Just False ->
-                                            "#FFF"
-
-                                        Just True ->
-                                            "#000"
-                                )
+                                         else
+                                            "none"
+                                        )
                                     :: (onClick <| Touch iFocus jFocus)
                                     :: styles
 
                             else
-                                (style "background-color" <|
-                                    case color square_ of
-                                        Nothing ->
-                                            "#888"
+                                squareToBackgroundColor squareFocus
+                                    :: style "border"
+                                        (if color squareFocus == Just False then
+                                            "1px solid #888"
 
-                                        Just False ->
-                                            "#FFF"
-
-                                        Just True ->
-                                            "#000"
-                                )
+                                         else
+                                            "none"
+                                        )
                                     :: styles
 
-                        ( Touched iTouch jTouch, _ ) ->
-                            let
-                                possibleMoves :
-                                    Int
-                                    -> Int
-                                    -> (Int -> Int -> ( Int, Int ))
-                                    -> List ( Int, Int )
-                                possibleMoves i j f =
-                                    let
-                                        ( i_, j_ ) =
-                                            f i j
-                                    in
-                                    if List.any (\n -> n < 0 || 9 <= n) [ i_, j_ ] then
-                                        []
+                Touched iTouch jTouch ->
+                    if canReach iTouch jTouch board isBlackTurn iFocus jFocus then
+                        let
+                            backgroundColor =
+                                case ( isBlackTurn, squareFocus ) of
+                                    ( False, Nothing ) ->
+                                        "#CCC"
 
-                                    else
-                                        case colorFromIndice i_ j_ board of
-                                            Nothing ->
-                                                ( i_, j_ ) :: possibleMoves i_ j_ f
+                                    ( False, Just _ ) ->
+                                        "#AAA"
 
-                                            Just isBlack ->
-                                                if isBlack == isBlackTurn then
-                                                    []
+                                    ( True, Nothing ) ->
+                                        "#444"
 
-                                                else
-                                                    [ ( i_, j_ ) ]
+                                    ( True, Just _ ) ->
+                                        "#666"
+                        in
+                        if canPromote iTouch jTouch board isBlackTurn iFocus jFocus then
+                            styles
 
-                                canReach =
-                                    getAt2 iTouch jTouch board
-                                        |> Maybe.map
-                                            (Maybe.map
-                                                (\piece ->
-                                                    let
-                                                        move n it =
-                                                            if isBlackTurn then
-                                                                it - n
+                        else
+                            onClick (Move iFocus jFocus False) :: style "background-color" backgroundColor :: styles
 
-                                                            else
-                                                                it + n
+                    else
+                        squareToBackgroundColor squareFocus
+                            :: onClick Untouch
+                            :: style "border"
+                                (if color squareFocus == Just False then
+                                    "1px solid #888"
 
-                                                        mapMove i j =
-                                                            map (\( di, dj ) -> ( move di i, move dj j ))
-
-                                                        { kind, isPromoted } =
-                                                            piece
-                                                    in
-                                                    -- FIXME: refactor
-                                                    case ( kind, isPromoted ) of
-                                                        ( P, False ) ->
-                                                            [ ( 1, 0 ) ]
-                                                                |> mapMove iTouch jTouch
-                                                                |> filter (\( i, j ) -> colorFromIndice i j board /= Just isBlackTurn)
-                                                                |> member ( iFocus, jFocus )
-
-                                                        ( N, False ) ->
-                                                            [ ( 2, -1 ), ( 2, 1 ) ]
-                                                                |> mapMove iTouch jTouch
-                                                                |> filter (\( i, j ) -> colorFromIndice i j board /= Just isBlackTurn)
-                                                                |> member ( iFocus, jFocus )
-
-                                                        ( S, False ) ->
-                                                            [ ( 1, -1 ), ( 1, 0 ), ( 1, 1 ), ( -1, -1 ), ( -1, 1 ) ]
-                                                                |> mapMove iTouch jTouch
-                                                                |> filter (\( i, j ) -> colorFromIndice i j board /= Just isBlackTurn)
-                                                                |> member ( iFocus, jFocus )
-
-                                                        ( G, False ) ->
-                                                            [ ( 1, -1 ), ( 1, 0 ), ( 1, 1 ), ( 0, -1 ), ( 0, 1 ), ( -1, 0 ) ]
-                                                                |> mapMove iTouch jTouch
-                                                                |> filter (\( i, j ) -> colorFromIndice i j board /= Just isBlackTurn)
-                                                                |> member ( iFocus, jFocus )
-
-                                                        ( K, False ) ->
-                                                            product [ -1, 0, 1 ] [ -1, 0, 1 ]
-                                                                |> mapMove iTouch jTouch
-                                                                |> filter (\( i, j ) -> colorFromIndice i j board /= Just isBlackTurn)
-                                                                |> member ( iFocus, jFocus )
-
-                                                        ( L, False ) ->
-                                                            possibleMoves iTouch jTouch (\i -> \j -> ( move 1 i, j ))
-                                                                |> member ( iFocus, jFocus )
-
-                                                        ( B, False ) ->
-                                                            product [ -1, 1 ] [ -1, 1 ]
-                                                                |> map (\( di, dj ) -> possibleMoves iTouch jTouch (\i -> \j -> ( move di i, move dj j )))
-                                                                |> concat
-                                                                |> member ( iFocus, jFocus )
-
-                                                        ( R, False ) ->
-                                                            [ ( -1, 0 ), ( 0, -1 ), ( 0, 1 ), ( 1, 0 ) ]
-                                                                |> map (\( di, dj ) -> possibleMoves iTouch jTouch (\i -> \j -> ( move di i, move dj j )))
-                                                                |> concat
-                                                                |> member ( iFocus, jFocus )
-
-                                                        _ ->
-                                                            False
-                                                )
-                                            )
-                                        |> Maybe.Extra.join
-                                        |> withDefault False
-                            in
-                            if canReach then
-                                -- FIXME: isPromoted
-                                let
-                                    backgroundColor =
-                                        if isBlackTurn then
-                                            "#444"
-
-                                        else
-                                            "#CCC"
-                                in
-                                onClick (Move iFocus jFocus False) :: style "background-color" backgroundColor :: styles
-
-                            else
-                                (style "background-color" <|
-                                    case color square_ of
-                                        Nothing ->
-                                            "#888"
-
-                                        Just False ->
-                                            "#FFF"
-
-                                        Just True ->
-                                            "#000"
+                                 else
+                                    "none"
                                 )
-                                    :: onClick Untouch
-                                    :: styles
-            in
-            case square_ of
+                            :: styles
+    in
+    case state of
+        Touched iTouch jTouch ->
+            if canPromote iTouch jTouch board isBlackTurn iFocus jFocus then
+                let
+                    backgroundColor =
+                        case ( isBlackTurn, squareFocus ) of
+                            ( False, Nothing ) ->
+                                "#CCC"
+
+                            ( False, Just _ ) ->
+                                "#AAA"
+
+                            ( True, Nothing ) ->
+                                "#444"
+
+                            ( True, Just _ ) ->
+                                "#666"
+
+                    stylesDiv =
+                        [ style "width" "50%"
+                        , style "height" "100%"
+                        , style "display" "inline-block"
+                        , style "top" "0"
+                        , style "box-sizing" "border-box"
+                        ]
+                in
+                td (style "position" "relative" :: style "background-color" backgroundColor :: style "border" "none" :: attributes)
+                    [ Maybe.map
+                        showPiece
+                        squareFocus
+                        |> withDefault ""
+                        |> text
+                    , div (onClick (Move iFocus jFocus False) :: style "left" "0" :: style "position" "absolute" :: stylesDiv) []
+                    , div (onClick (Move iFocus jFocus True) :: style "right" "0" :: style "position" "absolute" :: style "border-left" "1px solid #FFF" :: stylesDiv) []
+                    ]
+
+            else
+                -- FIXME: same
+                case squareFocus of
+                    Nothing ->
+                        td attributes []
+
+                    Just piece ->
+                        td
+                            (if .isBlack piece then
+                                attributes
+
+                             else
+                                attributes
+                            )
+                            [ piece |> showPiece |> text ]
+
+        _ ->
+            -- FIXME: same
+            case squareFocus of
                 Nothing ->
                     td attributes []
 
                 Just piece ->
                     td
                         (if .isBlack piece then
-                            {- style "transform" "rotate(180deg)" :: -}
                             attributes
 
                          else
                             attributes
                         )
                         [ piece |> showPiece |> text ]
-    in
+
+
+view : Model -> Html.Html Message
+view ( turn, board, state ) =
     div
         [ style "font-family" "Noto Sans"
         , style "color" "white"
@@ -471,6 +578,7 @@ view ( turn, board, state ) =
         , table
             [ class "board"
             , style "border" "1px solid"
+            , style "border-spacing" "1px"
             ]
             (board
                 |> indexedMap
@@ -478,7 +586,7 @@ view ( turn, board, state ) =
                         \squares ->
                             tr []
                                 (indexedMap
-                                    (squareToTd i)
+                                    (squareToTd turn board state i)
                                     squares
                                     |> (::)
                                         (td
@@ -488,7 +596,9 @@ view ( turn, board, state ) =
                                 )
                     )
                 |> reverse
-                |> (::) (tr [] (iota 9 |> List.reverse |> List.map (\j -> td [ style "color" "black", style "text-align" "center", style "vertical-align" "top" ] [ j |> fromInt |> text ])))
+                |> (\it ->
+                        append it [ tr [] <| td [] [] :: ([ "a", "b", "c", "d", "e", "f", "g", "h", "i" ] |> List.map (\j -> td [ style "color" "black", style "text-align" "center", style "vertical-align" "top" ] [ j |> text ])) ]
+                   )
             )
         ]
 
