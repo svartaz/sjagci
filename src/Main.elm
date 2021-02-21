@@ -162,7 +162,20 @@ canReach : Int -> Int -> Piece -> Board -> Bool -> Int -> Int -> Bool
 canReach iTouch jTouch pieceTouch board isBlackTurn iFocus jFocus =
     if iTouch < 0 then
         -- FIXME
-        colorFromIndice iFocus jFocus board == Nothing
+        colorFromIndice iFocus jFocus board
+            == Nothing
+            -- two pawns
+            && (iota 9
+                    |> List.all
+                        (\i ->
+                            case getAt2 i jFocus board of
+                                Just (Just piece) ->
+                                    ( .kind piece, .isBlack piece ) /= ( P, isBlackTurn )
+
+                                _ ->
+                                    True
+                        )
+               )
 
     else
         let
@@ -677,10 +690,10 @@ main =
 {- TODO:
    - prohibited
       -- piece with no moves
-      -- two pawns
       -- drop pawn mate
-   -  repetition
+   - repetition
    - check
       - checkmate
+   - undo
    - UI
 -}
