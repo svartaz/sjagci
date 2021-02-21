@@ -1,4 +1,4 @@
-module Main exposing (Message(..), main, update, view)
+module Main exposing (main, update, view)
 
 import Arithmetic exposing (isEven, isOdd)
 import Browser
@@ -7,140 +7,12 @@ import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
 import List exposing (append, concat, concatMap, filter, foldl, indexedMap, map, member, repeat, reverse)
 import List.Extra exposing (getAt)
+import ListMisc exposing (..)
 import Maybe exposing (Maybe(..), withDefault)
 import Maybe.Extra
 import String exposing (fromInt, toUpper)
 import Tuple exposing (pair)
-
-
-reverse2 : List (List a) -> List (List a)
-reverse2 =
-    map reverse >> reverse
-
-
-
--- FIXME
-
-
-iota : Int -> List Int
-iota n =
-    let
-        f n_ i =
-            if n_ <= i then
-                []
-
-            else
-                case n_ of
-                    0 ->
-                        []
-
-                    n__ ->
-                        i :: f n__ (i + 1)
-    in
-    f n 0
-
-
-range : Int -> Int -> List Int
-range m n =
-    iota n |> filter ((<=) m)
-
-
-product : List a -> List a -> List ( a, a )
-product xs ys =
-    concatMap
-        (\x -> map (\y -> ( x, y )) ys)
-        xs
-
-
-setAt : Int -> a -> List a -> List a
-setAt i x xs =
-    xs
-        |> indexedMap
-            (\i_ ->
-                \x_ ->
-                    if i == i_ then
-                        x
-
-                    else
-                        x_
-            )
-
-
-getAt2 : Int -> Int -> List (List a) -> Maybe a
-getAt2 i j xss =
-    getAt i xss |> Maybe.map (getAt j) |> Maybe.Extra.join
-
-
-setAt2 : Int -> Int -> a -> List (List a) -> List (List a)
-setAt2 i j x xss =
-    case getAt i xss of
-        Just xs ->
-            setAt i (setAt j x xs) xss
-
-        Nothing ->
-            xss
-
-
-type PieceKind
-    = P -- pawn
-    | L -- lance
-    | N -- knight
-    | S -- silver
-    | G -- gold
-    | B -- bishop
-    | R -- rook
-    | K -- king
-
-
-type alias Piece =
-    { kind : PieceKind, isBlack : Bool, isPromoted : Bool }
-
-
-type alias Square =
-    Maybe Piece
-
-
-type alias Board =
-    List (List Square)
-
-
-showKind : PieceKind -> String
-showKind kind =
-    case kind of
-        P ->
-            "P"
-
-        L ->
-            "L"
-
-        N ->
-            "N"
-
-        S ->
-            "S"
-
-        G ->
-            "G"
-
-        B ->
-            "B"
-
-        R ->
-            "R"
-
-        K ->
-            "K"
-
-
-showPiece : Piece -> String
-showPiece { kind, isPromoted } =
-    showKind kind
-        |> (if isPromoted then
-                String.append "+"
-
-            else
-                identity
-           )
+import Types exposing (..)
 
 
 boardEmpty : Board
@@ -171,26 +43,6 @@ boardInitial =
         |> reverse2
         |> setPlayer True
         |> reverse2
-
-
-type Model
-    = Model Int Board State (List Action)
-
-
-type Action
-    = AMove Piece Int Int Bool
-    | ADrop Piece Int Int
-
-
-type State
-    = Moved
-    | Touched Int Int
-
-
-type Message
-    = Touch Int Int
-    | Untouch
-    | Move Int Int Bool
 
 
 showState : State -> String
@@ -271,22 +123,6 @@ updateBoard i j i_ j_ isPromoted board =
                     Debug.log "error: can not move" ""
             in
             board
-
-
-type alias Color =
-    Maybe Bool
-
-
-color : Square -> Color
-color =
-    Maybe.map .isBlack
-
-
-colorFromIndice : Int -> Int -> Board -> Color
-colorFromIndice i j board =
-    getAt2 i j board
-        |> Maybe.Extra.join
-        |> Maybe.map .isBlack
 
 
 jToChar : Int -> Char
@@ -441,6 +277,9 @@ squareToTd turn board state iFocus jFocus squareFocus =
     let
         isBlackTurn =
             isOdd turn
+
+        colorFocus =
+            color squareFocus
 
         styles =
             [ style "width" "4em"
@@ -598,14 +437,14 @@ view (Model turn board state actions) =
     div
         [ style "font-family" "Noto Sans"
         , style "color" "white"
+        , style "vertical-align" "top"
         ]
         [ div [ style "color" "black" ]
-            [ text <| String.concat [ "turn ", String.fromInt turn ]
-            , div []
+            [ div []
                 [ text <| showState state ]
             ]
         , table
-            [ class "board"
+            [ style "float" "left"
             , style "border" "1px solid"
             , style "border-spacing" "1px"
             ]
@@ -626,32 +465,34 @@ view (Model turn board state actions) =
                     )
                 |> reverse
                 |> (\it ->
-                        append it [ tr [] <| td [] [] :: ([ "a", "b", "c", "d", "e", "f", "g", "h", "i" ] |> List.map (\j -> td [ style "color" "black", style "text-align" "center", style "vertical-align" "top" ] [ j |> text ])) ]
+                        append it [ tr [] <| td [] [] :: (iota 9 |> map (\j -> td [ style "color" "black", style "text-align" "center", style "vertical-align" "top" ] [ j |> jToChar |> String.fromChar |> text ])) ]
                    )
             )
-        , ul [ style "color" "black" ]
+        , table
+            [ style "float" "left"
+            , style "color" "black"
+            , style "list-style" "none"
+            ]
             (actions
-                |> Debug.log "actions"
                 |> indexedMap
-                    (\reversedTurn ->
+                    (\dTurn ->
                         \action ->
-                            li []
-                                [ text <|
-                                    let
-                                        turnSymbol =
-                                            if isOdd turn == isOdd reversedTurn then
-                                                "■"
+                            tr [] <|
+                                let
+                                    turnSymbol =
+                                        if isOdd turn == isOdd dTurn then
+                                            "■"
 
-                                            else
-                                                "□"
-                                    in
-                                    case action of
-                                        AMove piece i j isPromoted ->
+                                        else
+                                            "□"
+                                in
+                                case action of
+                                    AMove piece i j isPromoted ->
+                                        map (\it -> td [] [ text it ])
                                             [ turnSymbol
-                                            , ""
+                                            , fromInt <| turn - 1 - dTurn
                                             , "move "
                                             , showPiece piece
-                                            , " "
                                             , j |> jToChar |> String.fromChar
                                             , fromInt i
                                             , if isPromoted then
@@ -660,18 +501,16 @@ view (Model turn board state actions) =
                                               else
                                                 ""
                                             ]
-                                                |> String.concat
 
-                                        ADrop piece i j ->
+                                    ADrop piece i j ->
+                                        map (\it -> td [] [ text it ])
                                             [ turnSymbol
+                                            , fromInt <| turn - 1 - dTurn
                                             , "drop "
                                             , showPiece piece
-                                            , " "
                                             , j |> jToChar |> String.fromChar
                                             , fromInt i
                                             ]
-                                                |> String.concat
-                                ]
                     )
             )
         ]
@@ -684,5 +523,6 @@ main =
 
 {- TODO:
    - capture and drop
-   - promote
+   - prohibited
+   - checkmate
 -}
