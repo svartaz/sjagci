@@ -1,16 +1,16 @@
 module Main exposing (main, update, view)
 
-import Arithmetic exposing (isEven, isOdd)
+import Arithmetic exposing (isOdd)
 import Browser
 import Html exposing (div, li, table, td, text, tr, ul)
-import Html.Attributes exposing (class, style)
+import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
-import List exposing (all, append, concat, concatMap, filter, foldl, indexedMap, map, member, repeat, reverse)
-import List.Extra exposing (getAt, remove, removeAt)
+import List exposing (all, append, concat, filter, foldl, indexedMap, map, member, repeat, reverse)
+import List.Extra exposing (remove)
 import ListMisc exposing (..)
 import Maybe exposing (Maybe(..), withDefault)
 import Maybe.Extra
-import String exposing (fromInt, toUpper)
+import String exposing (fromInt)
 import Tuple exposing (pair)
 import Types exposing (..)
 
@@ -534,9 +534,7 @@ view (Model turn board capturesW capturesB state actions) =
             isOdd turn
     in
     div
-        [ style "width" "100%"
-        , style "height" "100%"
-        , style "font-family" "Noto Sans"
+        [ style "font-family" "Noto Sans"
         , style "color" "black"
         , style "vertical-align" "top"
         ]
@@ -700,7 +698,7 @@ view (Model turn board capturesW capturesB state actions) =
                         )
                     )
             )
-        , ul [ style "float" "left", style "list-style-position" "inside" ]
+        , ul [ style "clear" "both", style "list-style-position" "inside" ]
             [ li []
                 [ text "not implemented"
                 , ul []
