@@ -110,7 +110,7 @@ type State
 
 
 type Action
-    = AMove Piece Int Int Bool
+    = AMove Piece Int Int Int Int Bool
     | ADrop PieceKind Int Int
 
 
