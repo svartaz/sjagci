@@ -1,8 +1,8 @@
 module Main exposing (Message(..), main, update, view)
 
-import Arithmetic exposing (isOdd)
+import Arithmetic exposing (isEven, isOdd)
 import Browser
-import Html exposing (div, table, td, text, tr)
+import Html exposing (div, li, table, td, text, tr, ul)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
 import List exposing (append, concat, concatMap, filter, foldl, indexedMap, map, member, repeat, reverse)
@@ -104,39 +104,43 @@ type alias Board =
     List (List Square)
 
 
+showKind : PieceKind -> String
+showKind kind =
+    case kind of
+        P ->
+            "P"
+
+        L ->
+            "L"
+
+        N ->
+            "N"
+
+        S ->
+            "S"
+
+        G ->
+            "G"
+
+        B ->
+            "B"
+
+        R ->
+            "R"
+
+        K ->
+            "K"
+
+
 showPiece : Piece -> String
 showPiece { kind, isPromoted } =
-    (if isPromoted then
-        toUpper
+    showKind kind
+        |> (if isPromoted then
+                String.append "+"
 
-     else
-        identity
-    )
-    <|
-        case kind of
-            P ->
-                "p"
-
-            L ->
-                "l"
-
-            N ->
-                "n"
-
-            S ->
-                "s"
-
-            G ->
-                "g"
-
-            B ->
-                "b"
-
-            R ->
-                "r"
-
-            K ->
-                "k"
+            else
+                identity
+           )
 
 
 boardEmpty : Board
@@ -169,8 +173,13 @@ boardInitial =
         |> reverse2
 
 
-type alias Model =
-    ( Int, Board, State )
+type Model
+    = Model Int Board State (List Action)
+
+
+type Action
+    = AMove Piece Int Int Bool
+    | ADrop Piece Int Int
 
 
 type State
@@ -196,37 +205,52 @@ showState state =
 
 init : Model
 init =
-    ( 0, boardInitial, Moved )
+    Model 0 boardInitial Moved []
 
 
 update : Message -> Model -> Model
-update message ( turn, board, state ) =
+update message (Model turn board state actions) =
     case ( message, state ) of
         ( Touch i j, Moved ) ->
-            ( turn, board, Touched i j )
+            Model turn board (Touched i j) actions
 
         ( Untouch, Touched i j ) ->
-            ( turn, board, Moved )
+            Model turn
+                board
+                Moved
+                actions
 
         ( Move i_ j_ isPromoted, Touched i j ) ->
-            let
-                isAlreadyPromoted =
-                    getAt2 i j board
-                        |> withDefault Nothing
-                        |> Maybe.map .isPromoted
-                        |> withDefault False
-            in
-            ( turn + 1
-            , updateBoard i j i_ j_ (isPromoted || isAlreadyPromoted) board
-            , Moved
-            )
+            case getAt2 i j board of
+                Just (Just piece) ->
+                    let
+                        isAlreadyPromoted =
+                            .isPromoted piece
+                    in
+                    Model
+                        (turn + 1)
+                        (updateBoard i j i_ j_ (isPromoted || isAlreadyPromoted) board)
+                        Moved
+                        (AMove piece i_ j_ isPromoted
+                            :: actions
+                        )
+
+                _ ->
+                    Debug.log
+                        "error"
+                    <|
+                        Model
+                            turn
+                            board
+                            state
+                            actions
 
         _ ->
             let
                 _ =
                     Debug.log "error: can not update" ""
             in
-            ( turn, board, state )
+            Model turn board state actions
 
 
 
@@ -263,6 +287,11 @@ colorFromIndice i j board =
     getAt2 i j board
         |> Maybe.Extra.join
         |> Maybe.map .isBlack
+
+
+jToChar : Int -> Char
+jToChar j =
+    Char.toCode 'a' + j |> Char.fromCode
 
 
 canReach : Int -> Int -> Board -> Bool -> Int -> Int -> Bool
@@ -565,7 +594,7 @@ squareToTd turn board state iFocus jFocus squareFocus =
 
 
 view : Model -> Html.Html Message
-view ( turn, board, state ) =
+view (Model turn board state actions) =
     div
         [ style "font-family" "Noto Sans"
         , style "color" "white"
@@ -599,6 +628,51 @@ view ( turn, board, state ) =
                 |> (\it ->
                         append it [ tr [] <| td [] [] :: ([ "a", "b", "c", "d", "e", "f", "g", "h", "i" ] |> List.map (\j -> td [ style "color" "black", style "text-align" "center", style "vertical-align" "top" ] [ j |> text ])) ]
                    )
+            )
+        , ul [ style "color" "black" ]
+            (actions
+                |> Debug.log "actions"
+                |> indexedMap
+                    (\reversedTurn ->
+                        \action ->
+                            li []
+                                [ text <|
+                                    let
+                                        turnSymbol =
+                                            if isOdd turn == isOdd reversedTurn then
+                                                "■"
+
+                                            else
+                                                "□"
+                                    in
+                                    case action of
+                                        AMove piece i j isPromoted ->
+                                            [ turnSymbol
+                                            , ""
+                                            , "move "
+                                            , showPiece piece
+                                            , " "
+                                            , j |> jToChar |> String.fromChar
+                                            , fromInt i
+                                            , if isPromoted then
+                                                "+"
+
+                                              else
+                                                ""
+                                            ]
+                                                |> String.concat
+
+                                        ADrop piece i j ->
+                                            [ turnSymbol
+                                            , "drop "
+                                            , showPiece piece
+                                            , " "
+                                            , j |> jToChar |> String.fromChar
+                                            , fromInt i
+                                            ]
+                                                |> String.concat
+                                ]
+                    )
             )
         ]
 
