@@ -1,5 +1,6 @@
 module Types exposing (..)
 
+import List exposing (sortWith)
 import ListMisc exposing (..)
 import Maybe.Extra
 
@@ -43,8 +44,45 @@ showKind kind =
             "K"
 
 
+kindToInt : PieceKind -> Int
+kindToInt k =
+    case k of
+        P ->
+            0
+
+        L ->
+            1
+
+        N ->
+            2
+
+        S ->
+            3
+
+        G ->
+            4
+
+        B ->
+            5
+
+        R ->
+            6
+
+        K ->
+            7
+
+
+compareKind : PieceKind -> PieceKind -> Order
+compareKind k0 k1 =
+    compare (kindToInt k0) (kindToInt k1)
+
+
+sortKinds =
+    sortWith compareKind
+
+
 type alias Piece =
-    { kind : PieceKind, isBlack : Bool, isPromoted : Bool }
+    { kind : PieceKind, isBlack : Bool, isPromoted : Bool, canPromote : Bool }
 
 
 showPiece : Piece -> String
@@ -68,22 +106,23 @@ type alias Board =
 
 type State
     = Moved
-    | Touched Int Int
+    | Touched Int Int Piece
 
 
 type Action
     = AMove Piece Int Int Bool
-    | ADrop Piece Int Int
+    | ADrop PieceKind Int Int
 
 
 type Model
-    = Model Int Board State (List Action)
+    = Model Int Board (List PieceKind) (List PieceKind) State (List Action)
 
 
 type Message
-    = Touch Int Int
+    = Touch Int Int Piece
     | Untouch
     | Move Int Int Bool
+    | Drop Int Int PieceKind
 
 
 type alias Color =

@@ -1,8 +1,23 @@
 module ListMisc exposing (..)
 
 import List exposing (concatMap, filter, indexedMap, map, reverse)
-import List.Extra exposing (getAt)
+import List.Extra exposing (getAt, indexedFoldl)
 import Maybe.Extra
+
+
+indexedFilter : (Int -> a -> Bool) -> List a -> List a
+indexedFilter f =
+    indexedFoldl
+        (\i ->
+            \x ->
+                \acc ->
+                    if f i x then
+                        x :: acc
+
+                    else
+                        acc
+        )
+        []
 
 
 reverse2 : List (List a) -> List (List a)
