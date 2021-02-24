@@ -2,11 +2,11 @@ module Main exposing (main, update, view)
 
 import Arithmetic exposing (isOdd)
 import Browser
-import Html exposing (div, li, table, td, text, tr, ul)
-import Html.Attributes exposing (style)
+import Html exposing (a, button, div, li, table, td, text, tr, ul)
+import Html.Attributes exposing (attribute, style)
 import Html.Events exposing (onClick)
-import List exposing (all, append, concat, filter, foldl, indexedMap, map, member, repeat, reverse)
-import List.Extra exposing (remove)
+import List exposing (all, append, concat, drop, filter, foldl, indexedMap, map, member, repeat, reverse)
+import List.Extra exposing (init, remove, unconsLast)
 import ListMisc exposing (..)
 import Maybe exposing (Maybe(..), withDefault)
 import Maybe.Extra
@@ -93,24 +93,28 @@ act turn board ( capturesW, capturesB ) action =
                 )
                 board
             , if isBlackTurn then
-                ( capturesW, sortKinds <| remove kind capturesB )
+                ( capturesW, remove kind capturesB )
 
               else
-                ( sortKinds <| remove kind capturesW, capturesB )
+                ( remove kind capturesW, capturesB )
             )
 
 
 actAll turn board ( capturesW, capturesB ) actions =
-    case actions of
-        [] ->
+    case unconsLast actions of
+        Nothing ->
             ( turn, board, ( capturesW, capturesB ) )
 
-        action :: actions_ ->
+        Just ( action, actions_ ) ->
             let
                 ( turn_, board_, ( capturesW_, capturesB_ ) ) =
                     act turn board ( capturesW, capturesB ) action
             in
             actAll turn_ board_ ( capturesW_, capturesB_ ) actions_
+
+
+actAllInitial actions =
+    actAll 0 boardInitial ( [], [] ) actions
 
 
 update : Message -> Model -> Model
@@ -150,6 +154,18 @@ update message (Model turn board capturesW capturesB state actions) =
                     act turn board ( capturesW, capturesB ) action
             in
             Model turn_ board_ capturesW_ capturesB_ Moved (action :: actions)
+
+        ( Undo n, _ ) ->
+            case drop n actions of
+                [] ->
+                    Model turn board capturesW capturesB state actions
+
+                action :: actions_ ->
+                    let
+                        ( turn_, board_, ( capturesW_, capturesB_ ) ) =
+                            actAllInitial actions_
+                    in
+                    Model turn_ board_ capturesW_ capturesB_ Moved actions_
 
         _ ->
             let
@@ -275,7 +291,7 @@ canReach i0 j0 piece0 turn board i1 j1 =
 
                 ( B, True ) ->
                     (product [ -1, 1 ] [ -1, 1 ]
-                        |> map (\( di, dj ) -> possibleMoves i1 j1 (\i -> \j -> ( move di i, move dj j )))
+                        |> map (\( di, dj ) -> possibleMoves i0 j0 (\i -> \j -> ( move di i, move dj j )))
                         |> concat
                     )
                         |> append
@@ -328,8 +344,8 @@ squareToBackgroundColor square =
 
 
 stylesTd =
-    [ style "width" "4em"
-    , style "height" "4em"
+    [ style "width" "5em"
+    , style "height" "5em"
     , style "text-align" "center"
     , style "vertical-align" "middle"
     , style "padding" "0"
@@ -520,8 +536,7 @@ turnSymbol turn =
 
 
 stylesTable =
-    [ style "border" "none"
-    , style "border-spacing" "1px"
+    [ style "border-spacing" "1px"
     , style "float" "left"
     , style "color" "#888"
     ]
@@ -532,45 +547,40 @@ view (Model turn board capturesW capturesB state actions) =
     let
         isBlackTurn =
             isOdd turn
+
+        kindToScale kind =
+            let
+                n =
+                    kindToInt kind
+            in
+            if n == 0 then
+                "125%"
+
+            else if n < 5 then
+                "150%"
+
+            else if n < 7 then
+                "175%"
+
+            else
+                "200%"
     in
     div
         [ style "font-family" "Noto Sans"
         , style "color" "black"
         , style "vertical-align" "top"
         ]
-        [ table
-            stylesTable
-            (board
-                |> indexedMap
-                    (\i ->
-                        \squares ->
-                            tr []
-                                (indexedMap
-                                    (squareToTd turn board state i)
-                                    squares
-                                    |> (::)
-                                        (td
-                                            [ style "color" "black" ]
-                                            [ i |> fromInt |> text ]
-                                        )
-                                )
-                    )
-                |> reverse
-                |> (\it ->
-                        append it [ tr [ style "color" "#000" ] <| td [] [] :: (iota 9 |> map (\j -> td [ style "text-align" "center", style "vertical-align" "top" ] [ j |> jToChar |> String.fromChar |> text ])) ]
-                   )
-            )
-        , let
+        [ let
             f : List PieceKind -> List (List ( Int, PieceKind ))
             f kinds =
                 iota 4
                     |> map
-                        (\n ->
-                            indexedMap (\j -> \kind -> ( j, kind )) kinds
-                                |> indexedFilter (\i -> \_ -> modBy 4 i == n)
+                        (\i ->
+                            indexedMap pair (sortKinds kinds)
+                                |> filter (\( k, _ ) -> modBy 4 k == i)
                         )
           in
-          table (style "margin-left" "4em" :: stylesTable) <|
+          table (style "border" "1px solid black" :: stylesTable) <|
             ([ f capturesW, [ [] ], f capturesB |> reverse ]
                 |> concat
                 |> indexedMap
@@ -616,11 +626,32 @@ view (Model turn board capturesW capturesB state actions) =
                 |> reverse
             )
         , table
+            stylesTable
+            (board
+                |> indexedMap
+                    (\i ->
+                        \squares ->
+                            tr []
+                                (indexedMap
+                                    (squareToTd turn board state i)
+                                    squares
+                                    |> (::)
+                                        (td
+                                            [ style "color" "black" ]
+                                            [ i |> fromInt |> text ]
+                                        )
+                                )
+                    )
+                |> reverse
+                |> (\it ->
+                        append it [ tr [ style "color" "#000" ] <| td [] [] :: (iota 9 |> map (\j -> td [ style "text-align" "center", style "vertical-align" "top" ] [ j |> jToChar |> String.fromChar |> text ])) ]
+                   )
+            )
+        , table
             [ style "float" "left"
             , style "list-style" "none"
             , style "margin-right" "4em"
             , style "text-align" "center"
-            , style "height" "100%"
             ]
             (actions
                 |> indexedMap
@@ -630,10 +661,20 @@ view (Model turn board capturesW capturesB state actions) =
                                 let
                                     turn_ =
                                         turn - 1 - dTurn
+
+                                    f k ( content, align ) =
+                                        td [ style "text-align" align ]
+                                            [ if k == 1 then
+                                                a [ onClick <| Undo dTurn, style "text-decoration" "underline" ]
+                                                    [ text content ]
+
+                                              else
+                                                text content
+                                            ]
                                 in
                                 case action of
                                     AMove piece i0 j0 i1 j1 isPromoted ->
-                                        map (\( it, align ) -> td [ style "text-align" align ] [ text it ])
+                                        indexedMap f
                                             [ ( turnSymbol turn_, "right" )
                                             , ( fromInt <| turn_, "right" )
                                             , ( showPiece piece, "right" )
@@ -663,7 +704,7 @@ view (Model turn board capturesW capturesB state actions) =
                                             ]
 
                                     ADrop kind i j ->
-                                        map (\( it, align ) -> td [ style "text-align" align ] [ text it ])
+                                        indexedMap f
                                             [ ( turnSymbol turn_, "right" )
                                             , ( fromInt <| turn_, "right" )
                                             , ( showKind kind, "right" )
@@ -677,20 +718,32 @@ view (Model turn board capturesW capturesB state actions) =
                     (tr
                         []
                         (map
-                            (\( it, align ) -> td [ style "text-align" align ] [ text it ])
+                            (\( content, align ) -> td [ style "text-align" align ] [ text content ])
                             (append
                                 [ ( turnSymbol turn, "right" )
                                 , ( turn |> fromInt, "right" )
                                 ]
                              <|
+                                let
+                                    f i content =
+                                        if i == -1 then
+                                            ""
+
+                                        else
+                                            content
+                                in
                                 case state of
                                     Moved ->
                                         []
 
                                     Touched i j piece ->
                                         [ ( showKind <| .kind piece, "right" )
-                                        , ( j |> jToChar |> String.fromChar, "center" )
-                                        , ( fromInt i, "center" )
+                                        , ( f i (j |> jToChar |> String.fromChar)
+                                          , "center"
+                                          )
+                                        , ( f i (fromInt i)
+                                          , "center"
+                                          )
                                         , ( "", "center" )
                                         , ( "", "center" )
                                         ]
@@ -698,20 +751,6 @@ view (Model turn board capturesW capturesB state actions) =
                         )
                     )
             )
-        , ul [ style "clear" "both", style "list-style-position" "inside" ]
-            [ li []
-                [ text "not implemented"
-                , ul []
-                    [ li [] [ text "check" ]
-                    , li [] [ text "checkmate" ]
-                    , li [] [ text "piece with no moves" ]
-                    , li [] [ text "drop pawn mate" ]
-                    , li [] [ text "repetition" ]
-                    , li [] [ text "undo" ]
-                    , li [] [ text "UI" ]
-                    ]
-                ]
-            ]
         ]
 
 

@@ -5448,36 +5448,6 @@ var $elm_community$list_extra$List$Extra$remove = F2(
 				A2($elm_community$list_extra$List$Extra$remove, x, ys));
 		}
 	});
-var $elm$core$Basics$compare = _Utils_compare;
-var $author$project$Types$kindToInt = function (k) {
-	switch (k.$) {
-		case 'P':
-			return 0;
-		case 'L':
-			return 1;
-		case 'N':
-			return 2;
-		case 'S':
-			return 3;
-		case 'G':
-			return 4;
-		case 'B':
-			return 5;
-		case 'R':
-			return 6;
-		default:
-			return 7;
-	}
-};
-var $author$project$Types$compareKind = F2(
-	function (k0, k1) {
-		return A2(
-			$elm$core$Basics$compare,
-			$author$project$Types$kindToInt(k0),
-			$author$project$Types$kindToInt(k1));
-	});
-var $elm$core$List$sortWith = _List_sortWith;
-var $author$project$Types$sortKinds = $elm$core$List$sortWith($author$project$Types$compareKind);
 var $author$project$Main$act = F4(
 	function (turn, board, _v0, action) {
 		var capturesW = _v0.a;
@@ -5537,13 +5507,71 @@ var $author$project$Main$act = F4(
 					board),
 				isBlackTurn ? _Utils_Tuple2(
 					capturesW,
-					$author$project$Types$sortKinds(
-						A2($elm_community$list_extra$List$Extra$remove, kind, capturesB))) : _Utils_Tuple2(
-					$author$project$Types$sortKinds(
-						A2($elm_community$list_extra$List$Extra$remove, kind, capturesW)),
+					A2($elm_community$list_extra$List$Extra$remove, kind, capturesB)) : _Utils_Tuple2(
+					A2($elm_community$list_extra$List$Extra$remove, kind, capturesW),
 					capturesB));
 		}
 	});
+var $elm_community$list_extra$List$Extra$unconsLast = function (list) {
+	var _v0 = $elm$core$List$reverse(list);
+	if (!_v0.b) {
+		return $elm$core$Maybe$Nothing;
+	} else {
+		var last_ = _v0.a;
+		var rest = _v0.b;
+		return $elm$core$Maybe$Just(
+			_Utils_Tuple2(
+				last_,
+				$elm$core$List$reverse(rest)));
+	}
+};
+var $author$project$Main$actAll = F4(
+	function (turn, board, _v0, actions) {
+		actAll:
+		while (true) {
+			var capturesW = _v0.a;
+			var capturesB = _v0.b;
+			var _v1 = $elm_community$list_extra$List$Extra$unconsLast(actions);
+			if (_v1.$ === 'Nothing') {
+				return _Utils_Tuple3(
+					turn,
+					board,
+					_Utils_Tuple2(capturesW, capturesB));
+			} else {
+				var _v2 = _v1.a;
+				var action = _v2.a;
+				var actions_ = _v2.b;
+				var _v3 = A4(
+					$author$project$Main$act,
+					turn,
+					board,
+					_Utils_Tuple2(capturesW, capturesB),
+					action);
+				var turn_ = _v3.a;
+				var board_ = _v3.b;
+				var _v4 = _v3.c;
+				var capturesW_ = _v4.a;
+				var capturesB_ = _v4.b;
+				var $temp$turn = turn_,
+					$temp$board = board_,
+					$temp$_v0 = _Utils_Tuple2(capturesW_, capturesB_),
+					$temp$actions = actions_;
+				turn = $temp$turn;
+				board = $temp$board;
+				_v0 = $temp$_v0;
+				actions = $temp$actions;
+				continue actAll;
+			}
+		}
+	});
+var $author$project$Main$actAllInitial = function (actions) {
+	return A4(
+		$author$project$Main$actAll,
+		0,
+		$author$project$Main$boardInitial,
+		_Utils_Tuple2(_List_Nil, _List_Nil),
+		actions);
+};
 var $elm$core$Debug$log = _Debug_log;
 var $author$project$Main$update = F2(
 	function (message, _v0) {
@@ -5555,33 +5583,37 @@ var $author$project$Main$update = F2(
 		var actions = _v0.f;
 		var isBlackTurn = $lynn$elm_arithmetic$Arithmetic$isOdd(turn);
 		var _v1 = _Utils_Tuple2(message, state);
-		_v1$4:
+		_v1$5:
 		while (true) {
-			if (_v1.b.$ === 'Moved') {
-				if (_v1.a.$ === 'Touch') {
-					var _v2 = _v1.a;
-					var i = _v2.a;
-					var j = _v2.b;
-					var piece = _v2.c;
-					var _v3 = _v1.b;
-					return A6(
-						$author$project$Types$Model,
-						turn,
-						board,
-						capturesW,
-						capturesB,
-						A3($author$project$Types$Touched, i, j, piece),
-						actions);
-				} else {
-					break _v1$4;
-				}
-			} else {
-				switch (_v1.a.$) {
-					case 'Untouch':
+			switch (_v1.a.$) {
+				case 'Touch':
+					if (_v1.b.$ === 'Moved') {
+						var _v2 = _v1.a;
+						var i = _v2.a;
+						var j = _v2.b;
+						var piece = _v2.c;
+						var _v3 = _v1.b;
+						return A6(
+							$author$project$Types$Model,
+							turn,
+							board,
+							capturesW,
+							capturesB,
+							A3($author$project$Types$Touched, i, j, piece),
+							actions);
+					} else {
+						break _v1$5;
+					}
+				case 'Untouch':
+					if (_v1.b.$ === 'Touched') {
 						var _v4 = _v1.a;
 						var _v5 = _v1.b;
 						return A6($author$project$Types$Model, turn, board, capturesW, capturesB, $author$project$Types$Moved, actions);
-					case 'Move':
+					} else {
+						break _v1$5;
+					}
+				case 'Move':
+					if (_v1.b.$ === 'Touched') {
 						var _v6 = _v1.a;
 						var i_ = _v6.a;
 						var j_ = _v6.b;
@@ -5610,7 +5642,11 @@ var $author$project$Main$update = F2(
 							capturesB_,
 							$author$project$Types$Moved,
 							A2($elm$core$List$cons, action, actions));
-					case 'Drop':
+					} else {
+						break _v1$5;
+					}
+				case 'Drop':
+					if (_v1.b.$ === 'Touched') {
 						var _v10 = _v1.a;
 						var i_ = _v10.a;
 						var j_ = _v10.b;
@@ -5637,19 +5673,39 @@ var $author$project$Main$update = F2(
 							capturesB_,
 							$author$project$Types$Moved,
 							A2($elm$core$List$cons, action, actions));
-					default:
-						break _v1$4;
-				}
+					} else {
+						break _v1$5;
+					}
+				default:
+					var n = _v1.a.a;
+					var _v14 = A2($elm$core$List$drop, n, actions);
+					if (!_v14.b) {
+						return A6($author$project$Types$Model, turn, board, capturesW, capturesB, state, actions);
+					} else {
+						var action = _v14.a;
+						var actions_ = _v14.b;
+						var _v15 = $author$project$Main$actAllInitial(actions_);
+						var turn_ = _v15.a;
+						var board_ = _v15.b;
+						var _v16 = _v15.c;
+						var capturesW_ = _v16.a;
+						var capturesB_ = _v16.b;
+						return A6($author$project$Types$Model, turn_, board_, capturesW_, capturesB_, $author$project$Types$Moved, actions_);
+					}
 			}
 		}
-		var _v14 = A2($elm$core$Debug$log, 'error', '');
+		var _v17 = A2($elm$core$Debug$log, 'error', '');
 		return A6($author$project$Types$Model, turn, board, capturesW, capturesB, state, actions);
 	});
 var $author$project$Types$Touch = F3(
 	function (a, b, c) {
 		return {$: 'Touch', a: a, b: b, c: c};
 	});
+var $author$project$Types$Undo = function (a) {
+	return {$: 'Undo', a: a};
+};
 var $author$project$Types$Untouch = {$: 'Untouch'};
+var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -5662,41 +5718,20 @@ var $elm$core$List$concat = function (lists) {
 	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
 };
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
 var $elm$core$String$cons = _String_cons;
 var $elm$core$String$fromChar = function (_char) {
 	return A2($elm$core$String$cons, _char, '');
-};
-var $elm$core$Tuple$second = function (_v0) {
-	var y = _v0.b;
-	return y;
-};
-var $elm_community$list_extra$List$Extra$indexedFoldl = F3(
-	function (func, acc, list) {
-		var step = F2(
-			function (x, _v0) {
-				var i = _v0.a;
-				var thisAcc = _v0.b;
-				return _Utils_Tuple2(
-					i + 1,
-					A3(func, i, x, thisAcc));
-			});
-		return A3(
-			$elm$core$List$foldl,
-			step,
-			_Utils_Tuple2(0, acc),
-			list).b;
-	});
-var $author$project$ListMisc$indexedFilter = function (f) {
-	return A2(
-		$elm_community$list_extra$List$Extra$indexedFoldl,
-		function (i) {
-			return function (x) {
-				return function (acc) {
-					return A2(f, i, x) ? A2($elm$core$List$cons, x, acc) : acc;
-				};
-			};
-		},
-		_List_Nil);
 };
 var $elm$core$Char$fromCode = _Char_fromCode;
 var $author$project$Main$jToChar = function (j) {
@@ -5704,10 +5739,30 @@ var $author$project$Main$jToChar = function (j) {
 		$elm$core$Char$toCode(
 			_Utils_chr('a')) + j);
 };
-var $elm$html$Html$li = _VirtualDom_node('li');
+var $author$project$Types$kindToInt = function (k) {
+	switch (k.$) {
+		case 'P':
+			return 0;
+		case 'L':
+			return 1;
+		case 'N':
+			return 2;
+		case 'S':
+			return 3;
+		case 'G':
+			return 4;
+		case 'B':
+			return 5;
+		case 'R':
+			return 6;
+		default:
+			return 7;
+	}
+};
 var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
+var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -5752,6 +5807,16 @@ var $author$project$Types$showPiece = function (_v0) {
 	return (isPromoted ? $elm$core$String$append('+') : $elm$core$Basics$identity)(
 		$author$project$Types$showKind(kind));
 };
+var $elm$core$Basics$compare = _Utils_compare;
+var $author$project$Types$compareKind = F2(
+	function (k0, k1) {
+		return A2(
+			$elm$core$Basics$compare,
+			$author$project$Types$kindToInt(k0),
+			$author$project$Types$kindToInt(k1));
+	});
+var $elm$core$List$sortWith = _List_sortWith;
+var $author$project$Types$sortKinds = $elm$core$List$sortWith($author$project$Types$compareKind);
 var $author$project$Types$Drop = F3(
 	function (a, b, c) {
 		return {$: 'Drop', a: a, b: b, c: c};
@@ -5798,17 +5863,6 @@ var $author$project$Types$colorFromIndice = F3(
 			$elm_community$maybe_extra$Maybe$Extra$join(
 				A3($author$project$ListMisc$getAt2, i, j, board)));
 	});
-var $elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
-	});
 var $elm$core$List$member = F2(
 	function (x, xs) {
 		return A2(
@@ -5818,7 +5872,6 @@ var $elm$core$List$member = F2(
 			},
 			xs);
 	});
-var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$List$concatMap = F2(
 	function (f, list) {
 		return $elm$core$List$concat(
@@ -6074,8 +6127,8 @@ var $author$project$Main$canReach = F7(
 												var dj = _v16.b;
 												return A3(
 													possibleMoves,
-													i1,
-													j1,
+													i0,
+													j0,
 													function (i) {
 														return function (j) {
 															return _Utils_Tuple2(
@@ -6194,8 +6247,8 @@ var $author$project$Main$squareToBackgroundColor = function (square) {
 };
 var $author$project$Main$stylesTd = _List_fromArray(
 	[
-		A2($elm$html$Html$Attributes$style, 'width', '4em'),
-		A2($elm$html$Html$Attributes$style, 'height', '4em'),
+		A2($elm$html$Html$Attributes$style, 'width', '5em'),
+		A2($elm$html$Html$Attributes$style, 'height', '5em'),
 		A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
 		A2($elm$html$Html$Attributes$style, 'vertical-align', 'middle'),
 		A2($elm$html$Html$Attributes$style, 'padding', '0'),
@@ -6487,7 +6540,6 @@ var $author$project$Main$squareToTd = F6(
 	});
 var $author$project$Main$stylesTable = _List_fromArray(
 	[
-		A2($elm$html$Html$Attributes$style, 'border', 'none'),
 		A2($elm$html$Html$Attributes$style, 'border-spacing', '1px'),
 		A2($elm$html$Html$Attributes$style, 'float', 'left'),
 		A2($elm$html$Html$Attributes$style, 'color', '#888')
@@ -6497,7 +6549,6 @@ var $elm$html$Html$tr = _VirtualDom_node('tr');
 var $author$project$Main$turnSymbol = function (turn) {
 	return $lynn$elm_arithmetic$Arithmetic$isOdd(turn) ? '■' : '□';
 };
-var $elm$html$Html$ul = _VirtualDom_node('ul');
 var $author$project$Main$view = function (_v0) {
 	var turn = _v0.a;
 	var board = _v0.b;
@@ -6505,6 +6556,10 @@ var $author$project$Main$view = function (_v0) {
 	var capturesB = _v0.d;
 	var state = _v0.e;
 	var actions = _v0.f;
+	var kindToScale = function (kind) {
+		var n = $author$project$Types$kindToInt(kind);
+		return (!n) ? '125%' : ((n < 5) ? '150%' : ((n < 7) ? '175%' : '200%'));
+	};
 	var isBlackTurn = $lynn$elm_arithmetic$Arithmetic$isOdd(turn);
 	return A2(
 		$elm$html$Html$div,
@@ -6516,94 +6571,23 @@ var $author$project$Main$view = function (_v0) {
 			]),
 		_List_fromArray(
 			[
-				A2(
-				$elm$html$Html$table,
-				$author$project$Main$stylesTable,
-				function (it) {
-					return A2(
-						$elm$core$List$append,
-						it,
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$tr,
-								_List_fromArray(
-									[
-										A2($elm$html$Html$Attributes$style, 'color', '#000')
-									]),
-								A2(
-									$elm$core$List$cons,
-									A2($elm$html$Html$td, _List_Nil, _List_Nil),
-									A2(
-										$elm$core$List$map,
-										function (j) {
-											return A2(
-												$elm$html$Html$td,
-												_List_fromArray(
-													[
-														A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-														A2($elm$html$Html$Attributes$style, 'vertical-align', 'top')
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text(
-														$elm$core$String$fromChar(
-															$author$project$Main$jToChar(j)))
-													]));
-										},
-										$author$project$ListMisc$iota(9))))
-							]));
-				}(
-					$elm$core$List$reverse(
-						A2(
-							$elm$core$List$indexedMap,
-							function (i) {
-								return function (squares) {
-									return A2(
-										$elm$html$Html$tr,
-										_List_Nil,
-										A2(
-											$elm$core$List$cons,
-											A2(
-												$elm$html$Html$td,
-												_List_fromArray(
-													[
-														A2($elm$html$Html$Attributes$style, 'color', 'black')
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text(
-														$elm$core$String$fromInt(i))
-													])),
-											A2(
-												$elm$core$List$indexedMap,
-												A4($author$project$Main$squareToTd, turn, board, state, i),
-												squares)));
-								};
-							},
-							board)))),
 				function () {
 				var f = function (kinds) {
 					return A2(
 						$elm$core$List$map,
-						function (n) {
+						function (i) {
 							return A2(
-								$author$project$ListMisc$indexedFilter,
-								function (i) {
-									return function (_v4) {
-										return _Utils_eq(
-											A2($elm$core$Basics$modBy, 4, i),
-											n);
-									};
+								$elm$core$List$filter,
+								function (_v4) {
+									var k = _v4.a;
+									return _Utils_eq(
+										A2($elm$core$Basics$modBy, 4, k),
+										i);
 								},
 								A2(
 									$elm$core$List$indexedMap,
-									function (j) {
-										return function (kind) {
-											return _Utils_Tuple2(j, kind);
-										};
-									},
-									kinds));
+									$elm$core$Tuple$pair,
+									$author$project$Types$sortKinds(kinds)));
 						},
 						$author$project$ListMisc$iota(4));
 				};
@@ -6611,7 +6595,7 @@ var $author$project$Main$view = function (_v0) {
 					$elm$html$Html$table,
 					A2(
 						$elm$core$List$cons,
-						A2($elm$html$Html$Attributes$style, 'margin-left', '4em'),
+						A2($elm$html$Html$Attributes$style, 'border', '1px solid black'),
 						$author$project$Main$stylesTable),
 					$elm$core$List$reverse(
 						A2(
@@ -6692,13 +6676,78 @@ var $author$project$Main$view = function (_v0) {
 			}(),
 				A2(
 				$elm$html$Html$table,
+				$author$project$Main$stylesTable,
+				function (it) {
+					return A2(
+						$elm$core$List$append,
+						it,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$tr,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'color', '#000')
+									]),
+								A2(
+									$elm$core$List$cons,
+									A2($elm$html$Html$td, _List_Nil, _List_Nil),
+									A2(
+										$elm$core$List$map,
+										function (j) {
+											return A2(
+												$elm$html$Html$td,
+												_List_fromArray(
+													[
+														A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+														A2($elm$html$Html$Attributes$style, 'vertical-align', 'top')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text(
+														$elm$core$String$fromChar(
+															$author$project$Main$jToChar(j)))
+													]));
+										},
+										$author$project$ListMisc$iota(9))))
+							]));
+				}(
+					$elm$core$List$reverse(
+						A2(
+							$elm$core$List$indexedMap,
+							function (i) {
+								return function (squares) {
+									return A2(
+										$elm$html$Html$tr,
+										_List_Nil,
+										A2(
+											$elm$core$List$cons,
+											A2(
+												$elm$html$Html$td,
+												_List_fromArray(
+													[
+														A2($elm$html$Html$Attributes$style, 'color', 'black')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text(
+														$elm$core$String$fromInt(i))
+													])),
+											A2(
+												$elm$core$List$indexedMap,
+												A4($author$project$Main$squareToTd, turn, board, state, i),
+												squares)));
+								};
+							},
+							board)))),
+				A2(
+				$elm$html$Html$table,
 				_List_fromArray(
 					[
 						A2($elm$html$Html$Attributes$style, 'float', 'left'),
 						A2($elm$html$Html$Attributes$style, 'list-style', 'none'),
 						A2($elm$html$Html$Attributes$style, 'margin-right', '4em'),
-						A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-						A2($elm$html$Html$Attributes$style, 'height', '100%')
+						A2($elm$html$Html$Attributes$style, 'text-align', 'center')
 					]),
 				A2(
 					$elm$core$List$cons,
@@ -6776,20 +6825,33 @@ var $author$project$Main$view = function (_v0) {
 											var j1 = action.e;
 											var isPromoted = action.f;
 											return A2(
-												$elm$core$List$map,
-												function (_v6) {
-													var it = _v6.a;
-													var align = _v6.b;
-													return A2(
-														$elm$html$Html$td,
-														_List_fromArray(
-															[
-																A2($elm$html$Html$Attributes$style, 'text-align', align)
-															]),
-														_List_fromArray(
-															[
-																$elm$html$Html$text(it)
-															]));
+												$elm$core$List$indexedMap,
+												function (k) {
+													return function (_v6) {
+														var it = _v6.a;
+														var align = _v6.b;
+														return A2(
+															$elm$html$Html$td,
+															_List_fromArray(
+																[
+																	A2($elm$html$Html$Attributes$style, 'text-align', align)
+																]),
+															_List_fromArray(
+																[
+																	((!(!dTurn)) && (k === 1)) ? A2(
+																	$elm$html$Html$a,
+																	_List_fromArray(
+																		[
+																			$elm$html$Html$Events$onClick(
+																			$author$project$Types$Undo(dTurn - 1)),
+																			A2($elm$html$Html$Attributes$style, 'text-decoration', 'underline')
+																		]),
+																	_List_fromArray(
+																		[
+																			$elm$html$Html$text(it)
+																		])) : $elm$html$Html$text(it)
+																]));
+													};
 												},
 												_List_fromArray(
 													[
@@ -6825,20 +6887,33 @@ var $author$project$Main$view = function (_v0) {
 											var i = action.b;
 											var j = action.c;
 											return A2(
-												$elm$core$List$map,
-												function (_v7) {
-													var it = _v7.a;
-													var align = _v7.b;
-													return A2(
-														$elm$html$Html$td,
-														_List_fromArray(
-															[
-																A2($elm$html$Html$Attributes$style, 'text-align', align)
-															]),
-														_List_fromArray(
-															[
-																$elm$html$Html$text(it)
-															]));
+												$elm$core$List$indexedMap,
+												function (k) {
+													return function (_v7) {
+														var it = _v7.a;
+														var align = _v7.b;
+														return A2(
+															$elm$html$Html$td,
+															_List_fromArray(
+																[
+																	A2($elm$html$Html$Attributes$style, 'text-align', align)
+																]),
+															_List_fromArray(
+																[
+																	((!(!dTurn)) && (k === 1)) ? A2(
+																	$elm$html$Html$a,
+																	_List_fromArray(
+																		[
+																			$elm$html$Html$Events$onClick(
+																			$author$project$Types$Undo(dTurn - 1)),
+																			A2($elm$html$Html$Attributes$style, 'text-decoration', 'underline')
+																		]),
+																	_List_fromArray(
+																		[
+																			$elm$html$Html$text(it)
+																		])) : $elm$html$Html$text(it)
+																]));
+													};
 												},
 												_List_fromArray(
 													[
@@ -6865,79 +6940,7 @@ var $author$project$Main$view = function (_v0) {
 									}());
 							};
 						},
-						actions))),
-				A2(
-				$elm$html$Html$ul,
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'clear', 'both'),
-						A2($elm$html$Html$Attributes$style, 'list-style-position', 'inside')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$li,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text('not implemented'),
-								A2(
-								$elm$html$Html$ul,
-								_List_Nil,
-								_List_fromArray(
-									[
-										A2(
-										$elm$html$Html$li,
-										_List_Nil,
-										_List_fromArray(
-											[
-												$elm$html$Html$text('check')
-											])),
-										A2(
-										$elm$html$Html$li,
-										_List_Nil,
-										_List_fromArray(
-											[
-												$elm$html$Html$text('checkmate')
-											])),
-										A2(
-										$elm$html$Html$li,
-										_List_Nil,
-										_List_fromArray(
-											[
-												$elm$html$Html$text('piece with no moves')
-											])),
-										A2(
-										$elm$html$Html$li,
-										_List_Nil,
-										_List_fromArray(
-											[
-												$elm$html$Html$text('drop pawn mate')
-											])),
-										A2(
-										$elm$html$Html$li,
-										_List_Nil,
-										_List_fromArray(
-											[
-												$elm$html$Html$text('repetition')
-											])),
-										A2(
-										$elm$html$Html$li,
-										_List_Nil,
-										_List_fromArray(
-											[
-												$elm$html$Html$text('undo')
-											])),
-										A2(
-										$elm$html$Html$li,
-										_List_Nil,
-										_List_fromArray(
-											[
-												$elm$html$Html$text('UI')
-											]))
-									]))
-							]))
-					]))
+						actions)))
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$sandbox(

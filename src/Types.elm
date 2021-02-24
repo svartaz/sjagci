@@ -123,7 +123,7 @@ type Message
     | Untouch
     | Move Int Int Bool
     | Drop Int Int PieceKind
-    | Undo
+    | Undo Int
 
 
 type alias Color =
