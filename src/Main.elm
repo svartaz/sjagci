@@ -17,14 +17,15 @@ import Types exposing (..)
 
 boardEmpty : Board
 boardEmpty =
-    repeat 9 <| repeat 9 Nothing
+    repeat 9 Nothing |> repeat 9
 
 
 boardInitial : Board
 boardInitial =
     let
         setPawns isBlack board =
-            iota 9 |> foldl (\j -> setAt2 2 j <| Just { kind = P, isBlack = isBlack, isPromoted = False, canPromote = False }) board
+            iota 9
+                |> foldl (\j -> setAt2 2 j <| Just { kind = P, isBlack = isBlack, isPromoted = False, canPromote = False }) board
 
         setSymmetry j kind isBlack board =
             foldl (\j_ -> setAt2 0 j_ <| Just { kind = kind, isBlack = isBlack, isPromoted = False, canPromote = False }) board <| [ j, 8 - j ]
@@ -50,6 +51,7 @@ init =
     Model 0 boardInitial [] [] Moved []
 
 
+act : Int -> Board -> ( List PieceKind, List PieceKind ) -> Action -> ( Int, Board, ( List PieceKind, List PieceKind ) )
 act turn board ( capturesW, capturesB ) action =
     let
         isBlackTurn =
@@ -100,6 +102,7 @@ act turn board ( capturesW, capturesB ) action =
             )
 
 
+actAll : Int -> Board -> ( List PieceKind, List PieceKind ) -> List Action -> ( Int, Board, ( List PieceKind, List PieceKind ) )
 actAll turn board ( capturesW, capturesB ) actions =
     case unconsLast actions of
         Nothing ->
@@ -113,16 +116,13 @@ actAll turn board ( capturesW, capturesB ) actions =
             actAll turn_ board_ ( capturesW_, capturesB_ ) actions_
 
 
+actAllInitial : List Action -> ( Int, Board, ( List PieceKind, List PieceKind ) )
 actAllInitial actions =
     actAll 0 boardInitial ( [], [] ) actions
 
 
 update : Message -> Model -> Model
 update message (Model turn board capturesW capturesB state actions) =
-    let
-        isBlackTurn =
-            isOdd turn
-    in
     case ( message, state ) of
         ( Touch i j piece, Moved ) ->
             Model turn board capturesW capturesB (Touched i j piece) actions
@@ -145,7 +145,7 @@ update message (Model turn board capturesW capturesB state actions) =
             in
             Model turn_ board_ capturesW_ capturesB_ Moved (action :: actions)
 
-        ( Drop i_ j_ kind, Touched _ j _ ) ->
+        ( Drop i_ j_ kind, Touched _ _ _ ) ->
             let
                 action =
                     ADrop kind i_ j_
@@ -160,7 +160,7 @@ update message (Model turn board capturesW capturesB state actions) =
                 [] ->
                     Model turn board capturesW capturesB state actions
 
-                action :: actions_ ->
+                _ :: actions_ ->
                     let
                         ( turn_, board_, ( capturesW_, capturesB_ ) ) =
                             actAllInitial actions_
@@ -180,6 +180,7 @@ jToChar j =
     Char.toCode 'a' + j |> Char.fromCode
 
 
+isOpposite : Int -> Int -> Bool
 isOpposite turn i =
     if isOdd turn then
         i < 3
@@ -317,13 +318,9 @@ canReach i0 j0 piece0 turn board i1 j1 =
 
 canPromote : Int -> Int -> Piece -> Int -> Board -> Int -> Int -> Bool
 canPromote i0 j0 piece0 turn board i1 j1 =
-    let
-        maybeSquare0 =
-            getAt2 i0 j0 board
-    in
     (0 <= i0)
         && not
-            (maybeSquare0 |> Maybe.map (Maybe.map .isPromoted) |> Maybe.Extra.join |> withDefault False)
+            (getAt2 i0 j0 board |> Maybe.map (Maybe.map .isPromoted) |> Maybe.Extra.join |> withDefault False)
         && canReach i0 j0 piece0 turn board i1 j1
         && (piece0.canPromote
                 || isOpposite turn i1

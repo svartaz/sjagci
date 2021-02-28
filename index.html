@@ -5581,7 +5581,6 @@ var $author$project$Main$update = F2(
 		var capturesB = _v0.d;
 		var state = _v0.e;
 		var actions = _v0.f;
-		var isBlackTurn = $lynn$elm_arithmetic$Arithmetic$isOdd(turn);
 		var _v1 = _Utils_Tuple2(message, state);
 		_v1$5:
 		while (true) {
@@ -5652,7 +5651,6 @@ var $author$project$Main$update = F2(
 						var j_ = _v10.b;
 						var kind = _v10.c;
 						var _v11 = _v1.b;
-						var j = _v11.b;
 						var action = A3($author$project$Types$ADrop, kind, i_, j_);
 						var _v12 = A4(
 							$author$project$Main$act,
@@ -5682,7 +5680,6 @@ var $author$project$Main$update = F2(
 					if (!_v14.b) {
 						return A6($author$project$Types$Model, turn, board, capturesW, capturesB, state, actions);
 					} else {
-						var action = _v14.a;
 						var actions_ = _v14.b;
 						var _v15 = $author$project$Main$actAllInitial(actions_);
 						var turn_ = _v15.a;
@@ -5762,7 +5759,6 @@ var $author$project$Types$kindToInt = function (k) {
 var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
-var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -5872,6 +5868,7 @@ var $elm$core$List$member = F2(
 			},
 			xs);
 	});
+var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$List$concatMap = F2(
 	function (f, list) {
 		return $elm$core$List$concat(
@@ -6209,7 +6206,6 @@ var $elm$core$Maybe$withDefault = F2(
 	});
 var $author$project$Main$canPromote = F7(
 	function (i0, j0, piece0, turn, board, i1, j1) {
-		var maybeSquare0 = A3($author$project$ListMisc$getAt2, i0, j0, board);
 		return (0 <= i0) && ((!A2(
 			$elm$core$Maybe$withDefault,
 			false,
@@ -6220,7 +6216,7 @@ var $author$project$Main$canPromote = F7(
 						function ($) {
 							return $.isPromoted;
 						}),
-					maybeSquare0)))) && (A7($author$project$Main$canReach, i0, j0, piece0, turn, board, i1, j1) && (piece0.canPromote || A2($author$project$Main$isOpposite, turn, i1))));
+					A3($author$project$ListMisc$getAt2, i0, j0, board))))) && (A7($author$project$Main$canReach, i0, j0, piece0, turn, board, i1, j1) && (piece0.canPromote || A2($author$project$Main$isOpposite, turn, i1))));
 	});
 var $author$project$Types$color = $elm$core$Maybe$map(
 	function ($) {
@@ -6756,9 +6752,9 @@ var $author$project$Main$view = function (_v0) {
 						_List_Nil,
 						A2(
 							$elm$core$List$map,
-							function (_v8) {
-								var it = _v8.a;
-								var align = _v8.b;
+							function (_v7) {
+								var content = _v7.a;
+								var align = _v7.b;
 								return A2(
 									$elm$html$Html$td,
 									_List_fromArray(
@@ -6767,7 +6763,7 @@ var $author$project$Main$view = function (_v0) {
 										]),
 									_List_fromArray(
 										[
-											$elm$html$Html$text(it)
+											$elm$html$Html$text(content)
 										]));
 							},
 							A2(
@@ -6782,6 +6778,10 @@ var $author$project$Main$view = function (_v0) {
 										'right')
 									]),
 								function () {
+									var f = F2(
+										function (i, content) {
+											return _Utils_eq(i, -1) ? '' : content;
+										});
 									if (state.$ === 'Moved') {
 										return _List_Nil;
 									} else {
@@ -6797,11 +6797,17 @@ var $author$project$Main$view = function (_v0) {
 													}(piece)),
 												'right'),
 												_Utils_Tuple2(
-												$elm$core$String$fromChar(
-													$author$project$Main$jToChar(j)),
+												A2(
+													f,
+													i,
+													$elm$core$String$fromChar(
+														$author$project$Main$jToChar(j))),
 												'center'),
 												_Utils_Tuple2(
-												$elm$core$String$fromInt(i),
+												A2(
+													f,
+													i,
+													$elm$core$String$fromInt(i)),
 												'center'),
 												_Utils_Tuple2('', 'center'),
 												_Utils_Tuple2('', 'center')
@@ -6817,6 +6823,32 @@ var $author$project$Main$view = function (_v0) {
 									_List_Nil,
 									function () {
 										var turn_ = (turn - 1) - dTurn;
+										var f = F2(
+											function (k, _v6) {
+												var content = _v6.a;
+												var align = _v6.b;
+												return A2(
+													$elm$html$Html$td,
+													_List_fromArray(
+														[
+															A2($elm$html$Html$Attributes$style, 'text-align', align)
+														]),
+													_List_fromArray(
+														[
+															(k === 1) ? A2(
+															$elm$html$Html$a,
+															_List_fromArray(
+																[
+																	$elm$html$Html$Events$onClick(
+																	$author$project$Types$Undo(dTurn)),
+																	A2($elm$html$Html$Attributes$style, 'text-decoration', 'underline')
+																]),
+															_List_fromArray(
+																[
+																	$elm$html$Html$text(content)
+																])) : $elm$html$Html$text(content)
+														]));
+											});
 										if (action.$ === 'AMove') {
 											var piece = action.a;
 											var i0 = action.b;
@@ -6826,33 +6858,7 @@ var $author$project$Main$view = function (_v0) {
 											var isPromoted = action.f;
 											return A2(
 												$elm$core$List$indexedMap,
-												function (k) {
-													return function (_v6) {
-														var it = _v6.a;
-														var align = _v6.b;
-														return A2(
-															$elm$html$Html$td,
-															_List_fromArray(
-																[
-																	A2($elm$html$Html$Attributes$style, 'text-align', align)
-																]),
-															_List_fromArray(
-																[
-																	((!(!dTurn)) && (k === 1)) ? A2(
-																	$elm$html$Html$a,
-																	_List_fromArray(
-																		[
-																			$elm$html$Html$Events$onClick(
-																			$author$project$Types$Undo(dTurn - 1)),
-																			A2($elm$html$Html$Attributes$style, 'text-decoration', 'underline')
-																		]),
-																	_List_fromArray(
-																		[
-																			$elm$html$Html$text(it)
-																		])) : $elm$html$Html$text(it)
-																]));
-													};
-												},
+												f,
 												_List_fromArray(
 													[
 														_Utils_Tuple2(
@@ -6888,33 +6894,7 @@ var $author$project$Main$view = function (_v0) {
 											var j = action.c;
 											return A2(
 												$elm$core$List$indexedMap,
-												function (k) {
-													return function (_v7) {
-														var it = _v7.a;
-														var align = _v7.b;
-														return A2(
-															$elm$html$Html$td,
-															_List_fromArray(
-																[
-																	A2($elm$html$Html$Attributes$style, 'text-align', align)
-																]),
-															_List_fromArray(
-																[
-																	((!(!dTurn)) && (k === 1)) ? A2(
-																	$elm$html$Html$a,
-																	_List_fromArray(
-																		[
-																			$elm$html$Html$Events$onClick(
-																			$author$project$Types$Undo(dTurn - 1)),
-																			A2($elm$html$Html$Attributes$style, 'text-decoration', 'underline')
-																		]),
-																	_List_fromArray(
-																		[
-																			$elm$html$Html$text(it)
-																		])) : $elm$html$Html$text(it)
-																]));
-													};
-												},
+												f,
 												_List_fromArray(
 													[
 														_Utils_Tuple2(
