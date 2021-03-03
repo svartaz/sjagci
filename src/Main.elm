@@ -2,9 +2,9 @@ module Main exposing (main, update, view)
 
 import Arithmetic exposing (isOdd)
 import Browser
-import Html exposing (a, button, div, li, table, td, text, tr, ul)
-import Html.Attributes exposing (attribute, style)
-import Html.Events exposing (onClick)
+import Html exposing (a, button, div, input, label, li, table, td, text, tr, ul)
+import Html.Attributes exposing (attribute, checked, style, type_)
+import Html.Events exposing (onCheck, onClick)
 import List exposing (all, append, concat, drop, filter, foldl, indexedMap, map, member, repeat, reverse)
 import List.Extra exposing (init, remove, unconsLast)
 import ListMisc exposing (..)
@@ -48,7 +48,15 @@ boardInitial =
 
 init : Model
 init =
-    Model 0 boardInitial [] [] Moved []
+    { turn = 0
+    , board = boardInitial
+    , capturesW = []
+    , capturesB = []
+    , state = Moved
+    , actions = []
+    , isJa = False
+    , blackIsReversed = False
+    }
 
 
 act : Int -> Board -> ( List PieceKind, List PieceKind ) -> Action -> ( Int, Board, ( List PieceKind, List PieceKind ) )
@@ -122,18 +130,27 @@ actAllInitial actions =
 
 
 update : Message -> Model -> Model
-update message (Model turn board capturesW capturesB state actions) =
+update message model =
+    let
+        { turn, board, capturesW, capturesB, state, actions } =
+            model
+    in
     case ( message, state ) of
+        ( CheckboxJa isJa_, _ ) ->
+            { model | isJa = isJa_ }
+
+        ( CheckboxBlack blackIsReversed_, _ ) ->
+            let
+                _ =
+                    Debug.log "blackIsReversed" blackIsReversed_
+            in
+            { model | blackIsReversed = blackIsReversed_ }
+
         ( Touch i j piece, Moved ) ->
-            Model turn board capturesW capturesB (Touched i j piece) actions
+            { model | state = Touched i j piece }
 
         ( Untouch, Touched _ _ _ ) ->
-            Model turn
-                board
-                capturesW
-                capturesB
-                Moved
-                actions
+            { model | state = Moved }
 
         ( Move i_ j_ isPromoted, Touched i j piece ) ->
             let
@@ -143,7 +160,14 @@ update message (Model turn board capturesW capturesB state actions) =
                 ( turn_, board_, ( capturesW_, capturesB_ ) ) =
                     act turn board ( capturesW, capturesB ) action
             in
-            Model turn_ board_ capturesW_ capturesB_ Moved (action :: actions)
+            { model
+                | turn = turn_
+                , board = board_
+                , capturesW = capturesW_
+                , capturesB = capturesB_
+                , state = Moved
+                , actions = action :: actions
+            }
 
         ( Drop i_ j_ kind, Touched _ _ _ ) ->
             let
@@ -153,31 +177,40 @@ update message (Model turn board capturesW capturesB state actions) =
                 ( turn_, board_, ( capturesW_, capturesB_ ) ) =
                     act turn board ( capturesW, capturesB ) action
             in
-            Model turn_ board_ capturesW_ capturesB_ Moved (action :: actions)
+            { model
+                | turn = turn_
+                , board = board_
+                , capturesW = capturesW_
+                , capturesB = capturesB_
+                , state = Moved
+                , actions = action :: actions
+            }
 
         ( Undo n, _ ) ->
             case drop n actions of
                 [] ->
-                    Model turn board capturesW capturesB state actions
+                    model
 
                 _ :: actions_ ->
                     let
                         ( turn_, board_, ( capturesW_, capturesB_ ) ) =
                             actAllInitial actions_
                     in
-                    Model turn_ board_ capturesW_ capturesB_ Moved actions_
+                    { model
+                        | turn = turn_
+                        , board = board_
+                        , capturesW = capturesW_
+                        , capturesB = capturesB_
+                        , state = Moved
+                        , actions = actions_
+                    }
 
         _ ->
             let
                 _ =
                     Debug.log "error" ""
             in
-            Model turn board capturesW capturesB state actions
-
-
-jToChar : Int -> Char
-jToChar j =
-    Char.toCode 'a' + j |> Char.fromCode
+            model
 
 
 isOpposite : Int -> Int -> Bool
@@ -350,7 +383,7 @@ stylesTd =
     ]
 
 
-squareToTd turn board state i1 j1 square1 =
+squareToTd turn board state isJa blackIsReversed i1 j1 square1 =
     let
         isBlackTurn =
             isOdd turn
@@ -464,7 +497,7 @@ squareToTd turn board state i1 j1 square1 =
                 td (style "position" "relative" :: style "background-color" backgroundColor :: style "border" "none" :: attributes)
                     (append
                         [ Maybe.map
-                            showPiece
+                            (showPiece isJa)
                             square1
                             |> withDefault ""
                             |> text
@@ -489,13 +522,13 @@ squareToTd turn board state i1 j1 square1 =
 
                     Just piece ->
                         td
-                            (if .isBlack piece then
+                            (if blackIsReversed && piece.isBlack then
                                 style "transform" "rotate(180deg)" :: attributes
 
                              else
                                 attributes
                             )
-                            [ piece |> showPiece |> text ]
+                            [ piece |> showPiece isJa |> text ]
 
         _ ->
             -- FIXME: same
@@ -505,13 +538,13 @@ squareToTd turn board state i1 j1 square1 =
 
                 Just piece ->
                     td
-                        (if .isBlack piece then
+                        (if blackIsReversed && piece.isBlack then
                             style "transform" "rotate(180deg)" :: attributes
 
                          else
                             attributes
                         )
-                        [ piece |> showPiece |> text ]
+                        [ piece |> showPiece isJa |> text ]
 
 
 isCheck : Int -> Board -> Bool
@@ -532,16 +565,18 @@ turnSymbol turn =
         "□"
 
 
-stylesTable =
-    [ style "border-spacing" "1px"
-    , style "float" "left"
-    , style "color" "#888"
-    ]
-
-
 view : Model -> Html.Html Message
-view (Model turn board capturesW capturesB state actions) =
+view { turn, board, capturesW, capturesB, state, actions, isJa, blackIsReversed } =
     let
+        jToChar j =
+            Char.toCode 'a' + j |> Char.fromCode
+
+        stylesTable =
+            [ style "border-spacing" "1px"
+            , style "float" "left"
+            , style "color" "#888"
+            ]
+
         isBlackTurn =
             isOdd turn
 
@@ -616,7 +651,7 @@ view (Model turn board capturesW capturesB state actions) =
                                                                         []
                                                             )
                                                     )
-                                                    [ capture |> showKind |> (\it -> text it) ]
+                                                    [ capture |> (\it -> text <| showKind isJa it False) ]
                                             )
                                             captures
                     )
@@ -630,7 +665,7 @@ view (Model turn board capturesW capturesB state actions) =
                         \squares ->
                             tr []
                                 (indexedMap
-                                    (squareToTd turn board state i)
+                                    (squareToTd turn board state isJa blackIsReversed i)
                                     squares
                                     |> (::)
                                         (td
@@ -674,7 +709,7 @@ view (Model turn board capturesW capturesB state actions) =
                                         indexedMap f
                                             [ ( turnSymbol turn_, "right" )
                                             , ( fromInt <| turn_, "right" )
-                                            , ( showPiece piece, "right" )
+                                            , ( showPiece isJa piece, "right" )
                                             , ( j0 |> jToChar |> String.fromChar, "center" )
                                             , ( fromInt i0, "center" )
                                             , ( if j0 == j1 then
@@ -704,7 +739,7 @@ view (Model turn board capturesW capturesB state actions) =
                                         indexedMap f
                                             [ ( turnSymbol turn_, "right" )
                                             , ( fromInt <| turn_, "right" )
-                                            , ( showKind kind, "right" )
+                                            , ( showKind isJa kind False, "right" )
                                             , ( "", "center" )
                                             , ( "", "center" )
                                             , ( j |> jToChar |> String.fromChar, "center" )
@@ -734,7 +769,7 @@ view (Model turn board capturesW capturesB state actions) =
                                         []
 
                                     Touched i j piece ->
-                                        [ ( showKind <| .kind piece, "right" )
+                                        [ ( showKind isJa piece.kind piece.isPromoted, "right" )
                                         , ( f i (j |> jToChar |> String.fromChar)
                                           , "center"
                                           )
@@ -748,6 +783,16 @@ view (Model turn board capturesW capturesB state actions) =
                         )
                     )
             )
+        , ul []
+            [ li []
+                [ input [ type_ "checkbox", checked isJa, onCheck CheckboxJa ] []
+                , text "japanese"
+                ]
+            , li []
+                [ input [ type_ "checkbox", checked blackIsReversed, onCheck CheckboxBlack ] []
+                , text "reverse black"
+                ]
+            ]
         ]
 
 

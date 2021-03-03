@@ -16,32 +16,83 @@ type PieceKind
     | K -- king
 
 
-showKind : PieceKind -> String
-showKind kind =
-    case kind of
-        P ->
-            "P"
+showKind : Bool -> PieceKind -> Bool -> String
+showKind isJa kind isPromoted =
+    if isJa then
+        case kind of
+            P ->
+                if isPromoted then
+                    "と"
 
-        L ->
-            "L"
+                else
+                    "歩"
 
-        N ->
-            "N"
+            L ->
+                if isPromoted then
+                    "杏"
 
-        S ->
-            "S"
+                else
+                    "香"
 
-        G ->
-            "G"
+            N ->
+                if isPromoted then
+                    "圭"
 
-        B ->
-            "B"
+                else
+                    "桂"
 
-        R ->
-            "R"
+            S ->
+                if isPromoted then
+                    "全"
 
-        K ->
-            "K"
+                else
+                    "銀"
+
+            G ->
+                "金"
+
+            B ->
+                if isPromoted then
+                    "全"
+
+                else
+                    "馬"
+
+            R ->
+                if isPromoted then
+                    "龍"
+
+                else
+                    "飛"
+
+            K ->
+                "王"
+
+    else
+        case kind of
+            P ->
+                "P"
+
+            L ->
+                "L"
+
+            N ->
+                "N"
+
+            S ->
+                "S"
+
+            G ->
+                "G"
+
+            B ->
+                "B"
+
+            R ->
+                "R"
+
+            K ->
+                "K"
 
 
 kindToInt : PieceKind -> Int
@@ -85,15 +136,9 @@ type alias Piece =
     { kind : PieceKind, isBlack : Bool, isPromoted : Bool, canPromote : Bool }
 
 
-showPiece : Piece -> String
-showPiece { kind, isPromoted } =
-    showKind kind
-        |> (if isPromoted then
-                String.append "+"
-
-            else
-                identity
-           )
+showPiece : Bool -> Piece -> String
+showPiece isJa { kind, isPromoted } =
+    showKind isJa kind isPromoted
 
 
 type alias Square =
@@ -114,8 +159,16 @@ type Action
     | ADrop PieceKind Int Int
 
 
-type Model
-    = Model Int Board (List PieceKind) (List PieceKind) State (List Action)
+type alias Model =
+    { turn : Int
+    , board : Board
+    , capturesW : List PieceKind
+    , capturesB : List PieceKind
+    , state : State
+    , actions : List Action
+    , isJa : Bool
+    , blackIsReversed : Bool
+    }
 
 
 type Message
@@ -124,6 +177,8 @@ type Message
     | Move Int Int Bool
     | Drop Int Int PieceKind
     | Undo Int
+    | CheckboxJa Bool
+    | CheckboxBlack Bool
 
 
 type alias Color =
