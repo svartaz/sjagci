@@ -25,16 +25,16 @@ boardInitial =
     let
         setPawns isBlack board =
             iota 9
-                |> foldl (\j -> setAt2 2 j <| Just { kind = P, isBlack = isBlack, isPromoted = False, canPromote = False }) board
+                |> foldl (\j -> setAt2 2 j <| Just { kind = P, isBlack = isBlack, isPromoted = False }) board
 
         setSymmetry j kind isBlack board =
-            foldl (\j_ -> setAt2 0 j_ <| Just { kind = kind, isBlack = isBlack, isPromoted = False, canPromote = False }) board <| [ j, 8 - j ]
+            foldl (\j_ -> setAt2 0 j_ <| Just { kind = kind, isBlack = isBlack, isPromoted = False }) board <| [ j, 8 - j ]
 
         setPlayer isBlack board =
             board
                 |> setPawns isBlack
-                |> setAt2 1 1 (Just { kind = B, isBlack = isBlack, isPromoted = False, canPromote = False })
-                |> setAt2 1 7 (Just { kind = R, isBlack = isBlack, isPromoted = False, canPromote = False })
+                |> setAt2 1 1 (Just { kind = B, isBlack = isBlack, isPromoted = False })
+                |> setAt2 1 7 (Just { kind = R, isBlack = isBlack, isPromoted = False })
                 |> (\board_ ->
                         indexedMap pair [ L, N, S, G, K ] |> foldl (\( j, kind ) -> setSymmetry j kind isBlack) board_
                    )
@@ -73,10 +73,7 @@ act turn board ( capturesW, capturesB ) action =
                 |> setAt2 i1
                     j1
                     (Just
-                        { piece0
-                            | isPromoted = piece0.isPromoted || isPromoted
-                            , canPromote = piece0.canPromote || isOpposite turn i1
-                        }
+                        { piece0 | isPromoted = piece0.isPromoted || isPromoted }
                     )
             , case getAt2 i1 j1 board of
                 Just (Just piece1) ->
@@ -98,7 +95,6 @@ act turn board ( capturesW, capturesB ) action =
                     { kind = kind
                     , isBlack = isBlackTurn
                     , isPromoted = False
-                    , canPromote = isOpposite turn i
                     }
                 )
                 board
@@ -355,9 +351,7 @@ canPromote i0 j0 piece0 turn board i1 j1 =
         && not
             (getAt2 i0 j0 board |> Maybe.map (Maybe.map .isPromoted) |> Maybe.Extra.join |> withDefault False)
         && canReach i0 j0 piece0 turn board i1 j1
-        && (piece0.canPromote
-                || isOpposite turn i1
-           )
+        && (isOpposite turn i0 || isOpposite turn i1)
 
 
 squareToBackgroundColor square =
@@ -547,6 +541,27 @@ squareToTd turn board state isJa blackIsReversed i1 j1 square1 =
                         [ piece |> showPiece isJa |> text ]
 
 
+getPosition : PieceKind -> Board -> List ( Int, Int )
+getPosition kind board =
+    board
+        |> indexedMap
+            (\i ->
+                \squares ->
+                    squares
+                        |> indexedMap
+                            (\j ->
+                                \square ->
+                                    if Maybe.map .kind square == Just kind then
+                                        [ ( i, j ) ]
+
+                                    else
+                                        []
+                            )
+            )
+        |> concat
+        |> concat
+
+
 isCheck : Int -> Board -> Bool
 isCheck turn board =
     Debug.todo "isCheck unimplemented"
@@ -633,7 +648,11 @@ view { turn, board, capturesW, capturesB, state, actions, isJa, blackIsReversed 
                                                                 [ style "border" "1px solid #888" ]
 
                                                              else if 5 <= i then
-                                                                [ style "background-color" "#000", style "transform" "rotate(180deg)" ]
+                                                                if blackIsReversed then
+                                                                    [ style "background-color" "#000", style "transform" "rotate(180deg)" ]
+
+                                                                else
+                                                                    [ style "background-color" "#000" ]
 
                                                              else
                                                                 []
@@ -645,7 +664,7 @@ view { turn, board, capturesW, capturesB, state, actions, isJa, blackIsReversed 
 
                                                                 Moved ->
                                                                     if (i < 4 && not isBlackTurn) || (5 <= i && isBlackTurn) then
-                                                                        [ onClick (Touch -1 j { kind = capture, isBlack = isBlackTurn, canPromote = False, isPromoted = False }) ]
+                                                                        [ onClick (Touch -1 j { kind = capture, isBlack = isBlackTurn, isPromoted = False }) ]
 
                                                                     else
                                                                         []
@@ -783,14 +802,14 @@ view { turn, board, capturesW, capturesB, state, actions, isJa, blackIsReversed 
                         )
                     )
             )
-        , ul []
+        , ul [ style "clear" "both" ]
             [ li []
                 [ input [ type_ "checkbox", checked isJa, onCheck CheckboxJa ] []
                 , text "japanese"
                 ]
             , li []
                 [ input [ type_ "checkbox", checked blackIsReversed, onCheck CheckboxBlack ] []
-                , text "reverse black"
+                , text "reverse black pieces"
                 ]
             ]
         ]

@@ -53,10 +53,10 @@ showKind isJa kind isPromoted =
 
             B ->
                 if isPromoted then
-                    "全"
+                    "馬"
 
                 else
-                    "馬"
+                    "角"
 
             R ->
                 if isPromoted then
@@ -69,30 +69,38 @@ showKind isJa kind isPromoted =
                 "王"
 
     else
-        case kind of
-            P ->
-                "P"
+        String.append
+            (if isPromoted then
+                "+"
 
-            L ->
-                "L"
+             else
+                ""
+            )
+            (case kind of
+                P ->
+                    "P"
 
-            N ->
-                "N"
+                L ->
+                    "L"
 
-            S ->
-                "S"
+                N ->
+                    "N"
 
-            G ->
-                "G"
+                S ->
+                    "S"
 
-            B ->
-                "B"
+                G ->
+                    "G"
 
-            R ->
-                "R"
+                B ->
+                    "B"
 
-            K ->
-                "K"
+                R ->
+                    "R"
+
+                K ->
+                    "K"
+            )
 
 
 kindToInt : PieceKind -> Int
@@ -133,7 +141,7 @@ sortKinds =
 
 
 type alias Piece =
-    { kind : PieceKind, isBlack : Bool, isPromoted : Bool, canPromote : Bool }
+    { kind : PieceKind, isBlack : Bool, isPromoted : Bool }
 
 
 showPiece : Bool -> Piece -> String
