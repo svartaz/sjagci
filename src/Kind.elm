@@ -1,8 +1,6 @@
-module Types exposing (..)
+module Kind exposing (..)
 
 import List exposing (sortWith)
-import ListMisc exposing (..)
-import Maybe.Extra
 
 
 type PieceKind
@@ -16,8 +14,8 @@ type PieceKind
     | K -- king
 
 
-showKind : Bool -> PieceKind -> Bool -> String
-showKind isJa kind isPromoted =
+show : Bool -> PieceKind -> Bool -> String
+show isJa kind isPromoted =
     if isJa then
         case kind of
             P ->
@@ -70,12 +68,6 @@ showKind isJa kind isPromoted =
 
     else
         String.append
-            (if isPromoted then
-                "+"
-
-             else
-                ""
-            )
             (case kind of
                 P ->
                     "P"
@@ -101,10 +93,16 @@ showKind isJa kind isPromoted =
                 K ->
                     "K"
             )
+            (if isPromoted then
+                "+"
+
+             else
+                ""
+            )
 
 
-kindToInt : PieceKind -> Int
-kindToInt k =
+toInt : PieceKind -> Int
+toInt k =
     case k of
         P ->
             0
@@ -131,75 +129,10 @@ kindToInt k =
             7
 
 
-compareKind : PieceKind -> PieceKind -> Order
-compareKind k0 k1 =
-    compare (kindToInt k0) (kindToInt k1)
+compare : PieceKind -> PieceKind -> Order
+compare k0 k1 =
+    Basics.compare (toInt k0) (toInt k1)
 
 
-sortKinds =
-    sortWith compareKind
-
-
-type alias Piece =
-    { kind : PieceKind, isBlack : Bool, isPromoted : Bool }
-
-
-showPiece : Bool -> Piece -> String
-showPiece isJa { kind, isPromoted } =
-    showKind isJa kind isPromoted
-
-
-type alias Square =
-    Maybe Piece
-
-
-type alias Board =
-    List (List Square)
-
-
-type State
-    = Moved
-    | Touched Int Int Piece
-
-
-type Action
-    = AMove Piece Int Int Int Int Bool
-    | ADrop PieceKind Int Int
-
-
-type alias Model =
-    { turn : Int
-    , board : Board
-    , capturesW : List PieceKind
-    , capturesB : List PieceKind
-    , state : State
-    , actions : List Action
-    , isJa : Bool
-    , blackIsReversed : Bool
-    }
-
-
-type Message
-    = Touch Int Int Piece
-    | Untouch
-    | Move Int Int Bool
-    | Drop Int Int PieceKind
-    | Undo Int
-    | CheckboxJa Bool
-    | CheckboxBlack Bool
-
-
-type alias Color =
-    Maybe Bool
-
-
-color : Square -> Color
-color =
-    Maybe.map .isBlack
-
-
-colorFromIndice : Int -> Int -> Board -> Color
-colorFromIndice i j board =
-    getAt2 i j board
-        |> Maybe.Extra.join
-        |> Maybe.map .isBlack
+sort =
+    sortWith compare

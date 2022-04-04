@@ -4449,23 +4449,19 @@ var $elm$core$Set$toList = function (_v0) {
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
-var $author$project$Types$Model = F6(
-	function (a, b, c, d, e, f) {
-		return {$: 'Model', a: a, b: b, c: c, d: d, e: e, f: f};
-	});
-var $author$project$Types$Moved = {$: 'Moved'};
-var $author$project$Types$B = {$: 'B'};
 var $elm$core$Basics$False = {$: 'False'};
-var $author$project$Types$G = {$: 'G'};
+var $author$project$Main$Moved = {$: 'Moved'};
+var $author$project$Kind$B = {$: 'B'};
+var $author$project$Kind$G = {$: 'G'};
 var $elm$core$Maybe$Just = function (a) {
 	return {$: 'Just', a: a};
 };
-var $author$project$Types$K = {$: 'K'};
-var $author$project$Types$L = {$: 'L'};
-var $author$project$Types$N = {$: 'N'};
-var $author$project$Types$P = {$: 'P'};
-var $author$project$Types$R = {$: 'R'};
-var $author$project$Types$S = {$: 'S'};
+var $author$project$Kind$K = {$: 'K'};
+var $author$project$Kind$L = {$: 'L'};
+var $author$project$Kind$N = {$: 'N'};
+var $author$project$Kind$P = {$: 'P'};
+var $author$project$Kind$R = {$: 'R'};
+var $author$project$Kind$S = {$: 'S'};
 var $elm$core$Basics$True = {$: 'True'};
 var $elm$core$Basics$apL = F2(
 	function (f, x) {
@@ -4744,7 +4740,7 @@ var $author$project$Main$boardInitial = function () {
 						0,
 						j_,
 						$elm$core$Maybe$Just(
-							{canPromote: false, isBlack: isBlack, isPromoted: false, kind: kind}));
+							{isBlack: isBlack, isPromoted: false, kind: kind}));
 				},
 				board,
 				_List_fromArray(
@@ -4760,7 +4756,7 @@ var $author$project$Main$boardInitial = function () {
 						2,
 						j,
 						$elm$core$Maybe$Just(
-							{canPromote: false, isBlack: isBlack, isPromoted: false, kind: $author$project$Types$P}));
+							{isBlack: isBlack, isPromoted: false, kind: $author$project$Kind$P}));
 				},
 				board,
 				$author$project$ListMisc$iota(9));
@@ -4780,20 +4776,20 @@ var $author$project$Main$boardInitial = function () {
 						$elm$core$List$indexedMap,
 						$elm$core$Tuple$pair,
 						_List_fromArray(
-							[$author$project$Types$L, $author$project$Types$N, $author$project$Types$S, $author$project$Types$G, $author$project$Types$K])));
+							[$author$project$Kind$L, $author$project$Kind$N, $author$project$Kind$S, $author$project$Kind$G, $author$project$Kind$K])));
 			}(
 				A4(
 					$author$project$ListMisc$setAt2,
 					1,
 					7,
 					$elm$core$Maybe$Just(
-						{canPromote: false, isBlack: isBlack, isPromoted: false, kind: $author$project$Types$R}),
+						{isBlack: isBlack, isPromoted: false, kind: $author$project$Kind$R}),
 					A4(
 						$author$project$ListMisc$setAt2,
 						1,
 						1,
 						$elm$core$Maybe$Just(
-							{canPromote: false, isBlack: isBlack, isPromoted: false, kind: $author$project$Types$B}),
+							{isBlack: isBlack, isPromoted: false, kind: $author$project$Kind$B}),
 						A2(setPawns, isBlack, board))));
 		});
 	return $author$project$ListMisc$reverse2(
@@ -4803,7 +4799,7 @@ var $author$project$Main$boardInitial = function () {
 			$author$project$ListMisc$reverse2(
 				A2(setPlayer, false, $author$project$Main$boardEmpty))));
 }();
-var $author$project$Main$init = A6($author$project$Types$Model, 0, $author$project$Main$boardInitial, _List_Nil, _List_Nil, $author$project$Types$Moved, _List_Nil);
+var $author$project$Main$init = {actions: _List_Nil, blackIsReversed: false, board: $author$project$Main$boardInitial, capturesB: _List_Nil, capturesW: _List_Nil, isJa: false, state: $author$project$Main$Moved, turn: 0};
 var $elm$core$Result$Err = function (a) {
 	return {$: 'Err', a: a};
 };
@@ -5380,15 +5376,15 @@ var $elm$browser$Browser$sandbox = function (impl) {
 			view: impl.view
 		});
 };
-var $author$project$Types$ADrop = F3(
+var $author$project$Main$ADrop = F3(
 	function (a, b, c) {
 		return {$: 'ADrop', a: a, b: b, c: c};
 	});
-var $author$project$Types$AMove = F6(
+var $author$project$Main$AMove = F6(
 	function (a, b, c, d, e, f) {
 		return {$: 'AMove', a: a, b: b, c: c, d: d, e: e, f: f};
 	});
-var $author$project$Types$Touched = F3(
+var $author$project$Main$Touched = F3(
 	function (a, b, c) {
 		return {$: 'Touched', a: a, b: b, c: c};
 	});
@@ -5431,10 +5427,6 @@ var $lynn$elm_arithmetic$Arithmetic$divides = F2(
 var $lynn$elm_arithmetic$Arithmetic$isEven = $lynn$elm_arithmetic$Arithmetic$divides(2);
 var $elm$core$Basics$not = _Basics_not;
 var $lynn$elm_arithmetic$Arithmetic$isOdd = A2($elm$core$Basics$composeL, $elm$core$Basics$not, $lynn$elm_arithmetic$Arithmetic$isEven);
-var $author$project$Main$isOpposite = F2(
-	function (turn, i) {
-		return $lynn$elm_arithmetic$Arithmetic$isOdd(turn) ? (i < 3) : (6 <= i);
-	});
 var $elm_community$list_extra$List$Extra$remove = F2(
 	function (x, xs) {
 		if (!xs.b) {
@@ -5469,10 +5461,7 @@ var $author$project$Main$act = F4(
 					$elm$core$Maybe$Just(
 						_Utils_update(
 							piece0,
-							{
-								canPromote: piece0.canPromote || A2($author$project$Main$isOpposite, turn, i1),
-								isPromoted: piece0.isPromoted || isPromoted
-							})),
+							{isPromoted: piece0.isPromoted || isPromoted})),
 					A4($author$project$ListMisc$setAt2, i0, j0, $elm$core$Maybe$Nothing, board)),
 				function () {
 					var _v2 = A3($author$project$ListMisc$getAt2, i1, j1, board);
@@ -5498,12 +5487,7 @@ var $author$project$Main$act = F4(
 					i,
 					j,
 					$elm$core$Maybe$Just(
-						{
-							canPromote: A2($author$project$Main$isOpposite, turn, i),
-							isBlack: isBlackTurn,
-							isPromoted: false,
-							kind: kind
-						}),
+						{isBlack: isBlackTurn, isPromoted: false, kind: kind}),
 					board),
 				isBlackTurn ? _Utils_Tuple2(
 					capturesW,
@@ -5574,134 +5558,157 @@ var $author$project$Main$actAllInitial = function (actions) {
 };
 var $elm$core$Debug$log = _Debug_log;
 var $author$project$Main$update = F2(
-	function (message, _v0) {
-		var turn = _v0.a;
-		var board = _v0.b;
-		var capturesW = _v0.c;
-		var capturesB = _v0.d;
-		var state = _v0.e;
-		var actions = _v0.f;
+	function (message, model) {
+		var _v0 = model;
+		var turn = _v0.turn;
+		var board = _v0.board;
+		var capturesW = _v0.capturesW;
+		var capturesB = _v0.capturesB;
+		var state = _v0.state;
+		var actions = _v0.actions;
 		var _v1 = _Utils_Tuple2(message, state);
-		_v1$5:
+		_v1$7:
 		while (true) {
 			switch (_v1.a.$) {
+				case 'CheckboxJa':
+					var isJa_ = _v1.a.a;
+					return _Utils_update(
+						model,
+						{isJa: isJa_});
+				case 'CheckboxBlack':
+					var blackIsReversed_ = _v1.a.a;
+					var _v2 = A2($elm$core$Debug$log, 'blackIsReversed', blackIsReversed_);
+					return _Utils_update(
+						model,
+						{blackIsReversed: blackIsReversed_});
 				case 'Touch':
 					if (_v1.b.$ === 'Moved') {
-						var _v2 = _v1.a;
-						var i = _v2.a;
-						var j = _v2.b;
-						var piece = _v2.c;
-						var _v3 = _v1.b;
-						return A6(
-							$author$project$Types$Model,
-							turn,
-							board,
-							capturesW,
-							capturesB,
-							A3($author$project$Types$Touched, i, j, piece),
-							actions);
+						var _v3 = _v1.a;
+						var i = _v3.a;
+						var j = _v3.b;
+						var piece = _v3.c;
+						var _v4 = _v1.b;
+						return _Utils_update(
+							model,
+							{
+								state: A3($author$project$Main$Touched, i, j, piece)
+							});
 					} else {
-						break _v1$5;
+						break _v1$7;
 					}
 				case 'Untouch':
 					if (_v1.b.$ === 'Touched') {
-						var _v4 = _v1.a;
-						var _v5 = _v1.b;
-						return A6($author$project$Types$Model, turn, board, capturesW, capturesB, $author$project$Types$Moved, actions);
+						var _v5 = _v1.a;
+						var _v6 = _v1.b;
+						return _Utils_update(
+							model,
+							{state: $author$project$Main$Moved});
 					} else {
-						break _v1$5;
+						break _v1$7;
 					}
 				case 'Move':
 					if (_v1.b.$ === 'Touched') {
-						var _v6 = _v1.a;
-						var i_ = _v6.a;
-						var j_ = _v6.b;
-						var isPromoted = _v6.c;
-						var _v7 = _v1.b;
-						var i = _v7.a;
-						var j = _v7.b;
-						var piece = _v7.c;
-						var action = A6($author$project$Types$AMove, piece, i, j, i_, j_, isPromoted);
-						var _v8 = A4(
+						var _v7 = _v1.a;
+						var i_ = _v7.a;
+						var j_ = _v7.b;
+						var isPromoted = _v7.c;
+						var _v8 = _v1.b;
+						var i = _v8.a;
+						var j = _v8.b;
+						var piece = _v8.c;
+						var action = A6($author$project$Main$AMove, piece, i, j, i_, j_, isPromoted);
+						var _v9 = A4(
 							$author$project$Main$act,
 							turn,
 							board,
 							_Utils_Tuple2(capturesW, capturesB),
 							action);
-						var turn_ = _v8.a;
-						var board_ = _v8.b;
-						var _v9 = _v8.c;
-						var capturesW_ = _v9.a;
-						var capturesB_ = _v9.b;
-						return A6(
-							$author$project$Types$Model,
-							turn_,
-							board_,
-							capturesW_,
-							capturesB_,
-							$author$project$Types$Moved,
-							A2($elm$core$List$cons, action, actions));
+						var turn_ = _v9.a;
+						var board_ = _v9.b;
+						var _v10 = _v9.c;
+						var capturesW_ = _v10.a;
+						var capturesB_ = _v10.b;
+						return _Utils_update(
+							model,
+							{
+								actions: A2($elm$core$List$cons, action, actions),
+								board: board_,
+								capturesB: capturesB_,
+								capturesW: capturesW_,
+								state: $author$project$Main$Moved,
+								turn: turn_
+							});
 					} else {
-						break _v1$5;
+						break _v1$7;
 					}
 				case 'Drop':
 					if (_v1.b.$ === 'Touched') {
-						var _v10 = _v1.a;
-						var i_ = _v10.a;
-						var j_ = _v10.b;
-						var kind = _v10.c;
-						var _v11 = _v1.b;
-						var action = A3($author$project$Types$ADrop, kind, i_, j_);
-						var _v12 = A4(
+						var _v11 = _v1.a;
+						var i_ = _v11.a;
+						var j_ = _v11.b;
+						var kind = _v11.c;
+						var _v12 = _v1.b;
+						var action = A3($author$project$Main$ADrop, kind, i_, j_);
+						var _v13 = A4(
 							$author$project$Main$act,
 							turn,
 							board,
 							_Utils_Tuple2(capturesW, capturesB),
 							action);
-						var turn_ = _v12.a;
-						var board_ = _v12.b;
-						var _v13 = _v12.c;
-						var capturesW_ = _v13.a;
-						var capturesB_ = _v13.b;
-						return A6(
-							$author$project$Types$Model,
-							turn_,
-							board_,
-							capturesW_,
-							capturesB_,
-							$author$project$Types$Moved,
-							A2($elm$core$List$cons, action, actions));
+						var turn_ = _v13.a;
+						var board_ = _v13.b;
+						var _v14 = _v13.c;
+						var capturesW_ = _v14.a;
+						var capturesB_ = _v14.b;
+						return _Utils_update(
+							model,
+							{
+								actions: A2($elm$core$List$cons, action, actions),
+								board: board_,
+								capturesB: capturesB_,
+								capturesW: capturesW_,
+								state: $author$project$Main$Moved,
+								turn: turn_
+							});
 					} else {
-						break _v1$5;
+						break _v1$7;
 					}
 				default:
 					var n = _v1.a.a;
-					var _v14 = A2($elm$core$List$drop, n, actions);
-					if (!_v14.b) {
-						return A6($author$project$Types$Model, turn, board, capturesW, capturesB, state, actions);
+					var _v15 = A2($elm$core$List$drop, n, actions);
+					if (!_v15.b) {
+						return model;
 					} else {
-						var actions_ = _v14.b;
-						var _v15 = $author$project$Main$actAllInitial(actions_);
-						var turn_ = _v15.a;
-						var board_ = _v15.b;
-						var _v16 = _v15.c;
-						var capturesW_ = _v16.a;
-						var capturesB_ = _v16.b;
-						return A6($author$project$Types$Model, turn_, board_, capturesW_, capturesB_, $author$project$Types$Moved, actions_);
+						var actions_ = _v15.b;
+						var _v16 = $author$project$Main$actAllInitial(actions_);
+						var turn_ = _v16.a;
+						var board_ = _v16.b;
+						var _v17 = _v16.c;
+						var capturesW_ = _v17.a;
+						var capturesB_ = _v17.b;
+						return _Utils_update(
+							model,
+							{actions: actions_, board: board_, capturesB: capturesB_, capturesW: capturesW_, state: $author$project$Main$Moved, turn: turn_});
 					}
 			}
 		}
-		var _v17 = A2($elm$core$Debug$log, 'error', '');
-		return A6($author$project$Types$Model, turn, board, capturesW, capturesB, state, actions);
+		var _v18 = A2($elm$core$Debug$log, 'error', '');
+		return model;
 	});
-var $author$project$Types$Touch = F3(
+var $author$project$Main$CheckboxBlack = function (a) {
+	return {$: 'CheckboxBlack', a: a};
+};
+var $author$project$Main$CheckboxJa = function (a) {
+	return {$: 'CheckboxJa', a: a};
+};
+var $author$project$Main$Touch = F3(
 	function (a, b, c) {
 		return {$: 'Touch', a: a, b: b, c: c};
 	});
-var $author$project$Types$Undo = function (a) {
+var $author$project$Main$Undo = function (a) {
 	return {$: 'Undo', a: a};
 };
-var $author$project$Types$Untouch = {$: 'Untouch'};
+var $author$project$Main$Untouch = {$: 'Untouch'};
 var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$core$List$append = F2(
 	function (xs, ys) {
@@ -5711,6 +5718,21 @@ var $elm$core$List$append = F2(
 			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
 		}
 	});
+var $elm$json$Json$Encode$bool = _Json_wrap;
+var $elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$bool(bool));
+	});
+var $elm$html$Html$Attributes$checked = $elm$html$Html$Attributes$boolProperty('checked');
+var $elm$html$Html$Attributes$colspan = function (n) {
+	return A2(
+		_VirtualDom_attribute,
+		'colspan',
+		$elm$core$String$fromInt(n));
+};
 var $elm$core$List$concat = function (lists) {
 	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
 };
@@ -5731,12 +5753,101 @@ var $elm$core$String$fromChar = function (_char) {
 	return A2($elm$core$String$cons, _char, '');
 };
 var $elm$core$Char$fromCode = _Char_fromCode;
-var $author$project$Main$jToChar = function (j) {
-	return $elm$core$Char$fromCode(
-		$elm$core$Char$toCode(
-			_Utils_chr('a')) + j);
+var $elm$html$Html$input = _VirtualDom_node('input');
+var $elm$html$Html$li = _VirtualDom_node('li');
+var $elm$core$Basics$negate = function (n) {
+	return -n;
 };
-var $author$project$Types$kindToInt = function (k) {
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
+	});
+var $elm$json$Json$Decode$bool = _Json_decodeBool;
+var $elm$html$Html$Events$targetChecked = A2(
+	$elm$json$Json$Decode$at,
+	_List_fromArray(
+		['target', 'checked']),
+	$elm$json$Json$Decode$bool);
+var $elm$html$Html$Events$onCheck = function (tagger) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'change',
+		A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetChecked));
+};
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $elm$core$String$append = _String_append;
+var $author$project$Kind$show = F3(
+	function (isJa, kind, isPromoted) {
+		if (isJa) {
+			switch (kind.$) {
+				case 'P':
+					return isPromoted ? 'と' : '歩';
+				case 'L':
+					return isPromoted ? '杏' : '香';
+				case 'N':
+					return isPromoted ? '圭' : '桂';
+				case 'S':
+					return isPromoted ? '全' : '銀';
+				case 'G':
+					return '金';
+				case 'B':
+					return isPromoted ? '馬' : '角';
+				case 'R':
+					return isPromoted ? '龍' : '飛';
+				default:
+					return '王';
+			}
+		} else {
+			return A2(
+				$elm$core$String$append,
+				function () {
+					switch (kind.$) {
+						case 'P':
+							return 'P';
+						case 'L':
+							return 'L';
+						case 'N':
+							return 'N';
+						case 'S':
+							return 'S';
+						case 'G':
+							return 'G';
+						case 'B':
+							return 'B';
+						case 'R':
+							return 'R';
+						default:
+							return 'K';
+					}
+				}(),
+				isPromoted ? '+' : '');
+		}
+	});
+var $author$project$Main$showPiece = F2(
+	function (isJa, _v0) {
+		var kind = _v0.kind;
+		var isPromoted = _v0.isPromoted;
+		return A3($author$project$Kind$show, isJa, kind, isPromoted);
+	});
+var $elm$core$Basics$compare = _Utils_compare;
+var $author$project$Kind$toInt = function (k) {
 	switch (k.$) {
 		case 'P':
 			return 0;
@@ -5756,68 +5867,20 @@ var $author$project$Types$kindToInt = function (k) {
 			return 7;
 	}
 };
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var $elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'click',
-		$elm$json$Json$Decode$succeed(msg));
-};
-var $author$project$Types$showKind = function (kind) {
-	switch (kind.$) {
-		case 'P':
-			return 'P';
-		case 'L':
-			return 'L';
-		case 'N':
-			return 'N';
-		case 'S':
-			return 'S';
-		case 'G':
-			return 'G';
-		case 'B':
-			return 'B';
-		case 'R':
-			return 'R';
-		default:
-			return 'K';
-	}
-};
-var $elm$core$String$append = _String_append;
-var $author$project$Types$showPiece = function (_v0) {
-	var kind = _v0.kind;
-	var isPromoted = _v0.isPromoted;
-	return (isPromoted ? $elm$core$String$append('+') : $elm$core$Basics$identity)(
-		$author$project$Types$showKind(kind));
-};
-var $elm$core$Basics$compare = _Utils_compare;
-var $author$project$Types$compareKind = F2(
+var $author$project$Kind$compare = F2(
 	function (k0, k1) {
 		return A2(
 			$elm$core$Basics$compare,
-			$author$project$Types$kindToInt(k0),
-			$author$project$Types$kindToInt(k1));
+			$author$project$Kind$toInt(k0),
+			$author$project$Kind$toInt(k1));
 	});
 var $elm$core$List$sortWith = _List_sortWith;
-var $author$project$Types$sortKinds = $elm$core$List$sortWith($author$project$Types$compareKind);
-var $author$project$Types$Drop = F3(
+var $author$project$Kind$sort = $elm$core$List$sortWith($author$project$Kind$compare);
+var $author$project$Main$Drop = F3(
 	function (a, b, c) {
 		return {$: 'Drop', a: a, b: b, c: c};
 	});
-var $author$project$Types$Move = F3(
+var $author$project$Main$Move = F3(
 	function (a, b, c) {
 		return {$: 'Move', a: a, b: b, c: c};
 	});
@@ -5849,7 +5912,7 @@ var $elm$core$List$all = F2(
 			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
 			list);
 	});
-var $author$project$Types$colorFromIndice = F3(
+var $author$project$Main$colorFromIndice = F3(
 	function (i, j, board) {
 		return A2(
 			$elm$core$Maybe$map,
@@ -5894,7 +5957,7 @@ var $author$project$Main$canReach = F7(
 		if (i0 < 0) {
 			return _Utils_eq(
 				A3($author$project$ListMisc$getAt2, i1, j1, board),
-				$elm$core$Maybe$Just($elm$core$Maybe$Nothing)) && ((!_Utils_eq(piece0.kind, $author$project$Types$P)) || A2(
+				$elm$core$Maybe$Just($elm$core$Maybe$Nothing)) && ((!_Utils_eq(piece0.kind, $author$project$Kind$P)) || A2(
 				$elm$core$List$all,
 				function (i) {
 					var _v0 = A3($author$project$ListMisc$getAt2, i, j1, board);
@@ -5902,7 +5965,7 @@ var $author$project$Main$canReach = F7(
 						var piece1 = _v0.a.a;
 						return !_Utils_eq(
 							_Utils_Tuple3(piece1.kind, piece1.isBlack, piece1.isPromoted),
-							_Utils_Tuple3($author$project$Types$P, isBlackTurn, false));
+							_Utils_Tuple3($author$project$Kind$P, isBlackTurn, false));
 					} else {
 						return true;
 					}
@@ -5960,7 +6023,7 @@ var $author$project$Main$canReach = F7(
 						var i = _v21.a;
 						var j = _v21.b;
 						return !_Utils_eq(
-							A3($author$project$Types$colorFromIndice, i, j, board),
+							A3($author$project$Main$colorFromIndice, i, j, board),
 							$elm$core$Maybe$Just(isBlackTurn));
 					},
 					A3(mapMove, i0, j0, dijs));
@@ -6102,7 +6165,7 @@ var $author$project$Main$canReach = F7(
 											var i = _v17.a;
 											var j = _v17.b;
 											return !_Utils_eq(
-												A3($author$project$Types$colorFromIndice, i, j, board),
+												A3($author$project$Main$colorFromIndice, i, j, board),
 												$elm$core$Maybe$Just(isBlackTurn));
 										},
 										A3(
@@ -6150,7 +6213,7 @@ var $author$project$Main$canReach = F7(
 											var i = _v20.a;
 											var j = _v20.b;
 											return !_Utils_eq(
-												A3($author$project$Types$colorFromIndice, i, j, board),
+												A3($author$project$Main$colorFromIndice, i, j, board),
 												$elm$core$Maybe$Just(isBlackTurn));
 										},
 										A3(
@@ -6195,6 +6258,10 @@ var $author$project$Main$canReach = F7(
 				}());
 		}
 	});
+var $author$project$Main$isOpposite = F2(
+	function (turn, i) {
+		return $lynn$elm_arithmetic$Arithmetic$isOdd(turn) ? (i < 3) : (6 <= i);
+	});
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
 		if (maybe.$ === 'Just') {
@@ -6216,9 +6283,9 @@ var $author$project$Main$canPromote = F7(
 						function ($) {
 							return $.isPromoted;
 						}),
-					A3($author$project$ListMisc$getAt2, i0, j0, board))))) && (A7($author$project$Main$canReach, i0, j0, piece0, turn, board, i1, j1) && (piece0.canPromote || A2($author$project$Main$isOpposite, turn, i1))));
+					A3($author$project$ListMisc$getAt2, i0, j0, board))))) && (A7($author$project$Main$canReach, i0, j0, piece0, turn, board, i1, j1) && (A2($author$project$Main$isOpposite, turn, i0) || A2($author$project$Main$isOpposite, turn, i1))));
 	});
-var $author$project$Types$color = $elm$core$Maybe$map(
+var $author$project$Main$color = $elm$core$Maybe$map(
 	function ($) {
 		return $.isBlack;
 	});
@@ -6229,7 +6296,7 @@ var $author$project$Main$squareToBackgroundColor = function (square) {
 		$elm$html$Html$Attributes$style,
 		'background-color',
 		function () {
-			var _v0 = $author$project$Types$color(square);
+			var _v0 = $author$project$Main$color(square);
 			if (_v0.$ === 'Nothing') {
 				return '#888';
 			} else {
@@ -6253,11 +6320,16 @@ var $author$project$Main$stylesTd = _List_fromArray(
 var $elm$html$Html$td = _VirtualDom_node('td');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$Main$squareToTd = F6(
-	function (turn, board, state, i1, j1, square1) {
+var $author$project$Main$squareToTd = F8(
+	function (turn, board, state, isJa, blackIsReversed, i1, j1, square1) {
 		var styles = A2(
 			$elm$core$List$cons,
-			A2($elm$html$Html$Attributes$style, 'color', '#888'),
+			A2(
+				$elm$html$Html$Attributes$style,
+				'color',
+				_Utils_eq(
+					$author$project$Main$color(square1),
+					$elm$core$Maybe$Just(false)) ? 'black' : 'white'),
 			$author$project$Main$stylesTd);
 		var isBlackTurn = $lynn$elm_arithmetic$Arithmetic$isOdd(turn);
 		var attributes = function () {
@@ -6283,12 +6355,12 @@ var $author$project$Main$squareToTd = F6(
 								$elm$html$Html$Attributes$style,
 								'border',
 								_Utils_eq(
-									$author$project$Types$color(square1),
+									$author$project$Main$color(square1),
 									$elm$core$Maybe$Just(false)) ? '1px solid #888' : 'none'),
 							A2(
 								$elm$core$List$cons,
 								$elm$html$Html$Events$onClick(
-									A3($author$project$Types$Touch, i1, j1, piece)),
+									A3($author$project$Main$Touch, i1, j1, piece)),
 								styles))) : A2(
 						$elm$core$List$cons,
 						$author$project$Main$squareToBackgroundColor(square1),
@@ -6298,7 +6370,7 @@ var $author$project$Main$squareToTd = F6(
 								$elm$html$Html$Attributes$style,
 								'border',
 								_Utils_eq(
-									$author$project$Types$color(square1),
+									$author$project$Main$color(square1),
 									$elm$core$Maybe$Just(false)) ? '1px solid #888' : 'none'),
 							styles));
 				}
@@ -6329,7 +6401,7 @@ var $author$project$Main$squareToTd = F6(
 						$elm$core$List$cons,
 						$elm$html$Html$Events$onClick(
 							A3(
-								$author$project$Types$Drop,
+								$author$project$Main$Drop,
 								i1,
 								j1,
 								function ($) {
@@ -6341,7 +6413,7 @@ var $author$project$Main$squareToTd = F6(
 							styles)) : A2(
 						$elm$core$List$cons,
 						$elm$html$Html$Events$onClick(
-							A3($author$project$Types$Move, i1, j1, false)),
+							A3($author$project$Main$Move, i1, j1, false)),
 						A2(
 							$elm$core$List$cons,
 							A2($elm$html$Html$Attributes$style, 'background-color', backgroundColor),
@@ -6352,14 +6424,14 @@ var $author$project$Main$squareToTd = F6(
 						$author$project$Main$squareToBackgroundColor(square1),
 						A2(
 							$elm$core$List$cons,
-							$elm$html$Html$Events$onClick($author$project$Types$Untouch),
+							$elm$html$Html$Events$onClick($author$project$Main$Untouch),
 							A2(
 								$elm$core$List$cons,
 								A2(
 									$elm$html$Html$Attributes$style,
 									'border',
 									_Utils_eq(
-										$author$project$Types$color(square1),
+										$author$project$Main$color(square1),
 										$elm$core$Maybe$Just(false)) ? '1px solid #888' : 'none'),
 								styles)));
 				}
@@ -6418,7 +6490,10 @@ var $author$project$Main$squareToTd = F6(
 								A2(
 									$elm$core$Maybe$withDefault,
 									'',
-									A2($elm$core$Maybe$map, $author$project$Types$showPiece, square1)))
+									A2(
+										$elm$core$Maybe$map,
+										$author$project$Main$showPiece(isJa),
+										square1)))
 							]),
 						isBlackTurn ? _List_fromArray(
 							[
@@ -6427,7 +6502,7 @@ var $author$project$Main$squareToTd = F6(
 								A2(
 									$elm$core$List$cons,
 									$elm$html$Html$Events$onClick(
-										A3($author$project$Types$Move, i1, j1, true)),
+										A3($author$project$Main$Move, i1, j1, true)),
 									A2(
 										$elm$core$List$cons,
 										A2($elm$html$Html$Attributes$style, 'left', '0'),
@@ -6447,7 +6522,7 @@ var $author$project$Main$squareToTd = F6(
 								A2(
 									$elm$core$List$cons,
 									$elm$html$Html$Events$onClick(
-										A3($author$project$Types$Move, i1, j1, false)),
+										A3($author$project$Main$Move, i1, j1, false)),
 									A2(
 										$elm$core$List$cons,
 										A2($elm$html$Html$Attributes$style, 'right', '0'),
@@ -6463,7 +6538,7 @@ var $author$project$Main$squareToTd = F6(
 								A2(
 									$elm$core$List$cons,
 									$elm$html$Html$Events$onClick(
-										A3($author$project$Types$Move, i1, j1, false)),
+										A3($author$project$Main$Move, i1, j1, false)),
 									A2(
 										$elm$core$List$cons,
 										A2($elm$html$Html$Attributes$style, 'left', '0'),
@@ -6477,7 +6552,7 @@ var $author$project$Main$squareToTd = F6(
 								A2(
 									$elm$core$List$cons,
 									$elm$html$Html$Events$onClick(
-										A3($author$project$Types$Move, i1, j1, true)),
+										A3($author$project$Main$Move, i1, j1, true)),
 									A2(
 										$elm$core$List$cons,
 										A2($elm$html$Html$Attributes$style, 'right', '0'),
@@ -6500,16 +6575,14 @@ var $author$project$Main$squareToTd = F6(
 					var piece = square1.a;
 					return A2(
 						$elm$html$Html$td,
-						function ($) {
-							return $.isBlack;
-						}(piece) ? A2(
+						(blackIsReversed && piece.isBlack) ? A2(
 							$elm$core$List$cons,
 							A2($elm$html$Html$Attributes$style, 'transform', 'rotate(180deg)'),
 							attributes) : attributes,
 						_List_fromArray(
 							[
 								$elm$html$Html$text(
-								$author$project$Types$showPiece(piece))
+								A2($author$project$Main$showPiece, isJa, piece))
 							]));
 				}
 			}
@@ -6520,41 +6593,56 @@ var $author$project$Main$squareToTd = F6(
 				var piece = square1.a;
 				return A2(
 					$elm$html$Html$td,
-					function ($) {
-						return $.isBlack;
-					}(piece) ? A2(
+					(blackIsReversed && piece.isBlack) ? A2(
 						$elm$core$List$cons,
 						A2($elm$html$Html$Attributes$style, 'transform', 'rotate(180deg)'),
 						attributes) : attributes,
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							$author$project$Types$showPiece(piece))
+							A2($author$project$Main$showPiece, isJa, piece))
 						]));
 			}
 		}
 	});
-var $author$project$Main$stylesTable = _List_fromArray(
-	[
-		A2($elm$html$Html$Attributes$style, 'border-spacing', '1px'),
-		A2($elm$html$Html$Attributes$style, 'float', 'left'),
-		A2($elm$html$Html$Attributes$style, 'color', '#888')
-	]);
 var $elm$html$Html$table = _VirtualDom_node('table');
 var $elm$html$Html$tr = _VirtualDom_node('tr');
 var $author$project$Main$turnSymbol = function (turn) {
 	return $lynn$elm_arithmetic$Arithmetic$isOdd(turn) ? '■' : '□';
 };
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
+var $elm$html$Html$ul = _VirtualDom_node('ul');
 var $author$project$Main$view = function (_v0) {
-	var turn = _v0.a;
-	var board = _v0.b;
-	var capturesW = _v0.c;
-	var capturesB = _v0.d;
-	var state = _v0.e;
-	var actions = _v0.f;
+	var turn = _v0.turn;
+	var board = _v0.board;
+	var capturesW = _v0.capturesW;
+	var capturesB = _v0.capturesB;
+	var state = _v0.state;
+	var actions = _v0.actions;
+	var isJa = _v0.isJa;
+	var blackIsReversed = _v0.blackIsReversed;
+	var stylesTable = _List_fromArray(
+		[
+			A2($elm$html$Html$Attributes$style, 'border-spacing', '1px'),
+			A2($elm$html$Html$Attributes$style, 'float', 'left'),
+			A2($elm$html$Html$Attributes$style, 'color', '#888')
+		]);
 	var kindToScale = function (kind) {
-		var n = $author$project$Types$kindToInt(kind);
+		var n = $author$project$Kind$toInt(kind);
 		return (!n) ? '125%' : ((n < 5) ? '150%' : ((n < 7) ? '175%' : '200%'));
+	};
+	var jToChar = function (j) {
+		return $elm$core$Char$fromCode(
+			$elm$core$Char$toCode(
+				_Utils_chr('a')) + j);
 	};
 	var isBlackTurn = $lynn$elm_arithmetic$Arithmetic$isOdd(turn);
 	return A2(
@@ -6583,7 +6671,7 @@ var $author$project$Main$view = function (_v0) {
 								A2(
 									$elm$core$List$indexedMap,
 									$elm$core$Tuple$pair,
-									$author$project$Types$sortKinds(kinds)));
+									$author$project$Kind$sort(kinds)));
 						},
 						$author$project$ListMisc$iota(4));
 				};
@@ -6592,7 +6680,7 @@ var $author$project$Main$view = function (_v0) {
 					A2(
 						$elm$core$List$cons,
 						A2($elm$html$Html$Attributes$style, 'border', '1px solid black'),
-						$author$project$Main$stylesTable),
+						stylesTable),
 					$elm$core$List$reverse(
 						A2(
 							$elm$core$List$indexedMap,
@@ -6623,17 +6711,17 @@ var $author$project$Main$view = function (_v0) {
 																if (state.$ === 'Touched') {
 																	return _List_fromArray(
 																		[
-																			$elm$html$Html$Events$onClick($author$project$Types$Untouch)
+																			$elm$html$Html$Events$onClick($author$project$Main$Untouch)
 																		]);
 																} else {
 																	return (((i < 4) && (!isBlackTurn)) || ((5 <= i) && isBlackTurn)) ? _List_fromArray(
 																		[
 																			$elm$html$Html$Events$onClick(
 																			A3(
-																				$author$project$Types$Touch,
+																				$author$project$Main$Touch,
 																				-1,
 																				j,
-																				{canPromote: false, isBlack: isBlackTurn, isPromoted: false, kind: capture}))
+																				{isBlack: isBlackTurn, isPromoted: false, kind: capture}))
 																		]) : _List_Nil;
 																}
 															}(),
@@ -6642,18 +6730,23 @@ var $author$project$Main$view = function (_v0) {
 																(i < 4) ? _List_fromArray(
 																	[
 																		A2($elm$html$Html$Attributes$style, 'border', '1px solid #888')
-																	]) : ((5 <= i) ? _List_fromArray(
-																	[
-																		A2($elm$html$Html$Attributes$style, 'background-color', '#000'),
-																		A2($elm$html$Html$Attributes$style, 'transform', 'rotate(180deg)')
-																	]) : _List_Nil),
+																	]) : ((5 <= i) ? A2(
+																	$elm$core$List$append,
+																	_List_fromArray(
+																		[
+																			A2($elm$html$Html$Attributes$style, 'background-color', '#000')
+																		]),
+																	blackIsReversed ? _List_fromArray(
+																		[
+																			A2($elm$html$Html$Attributes$style, 'transform', 'rotate(180deg)')
+																		]) : _List_Nil) : _List_Nil),
 																$author$project$Main$stylesTd)),
 														_List_fromArray(
 															[
 																function (it) {
-																return $elm$html$Html$text(it);
-															}(
-																$author$project$Types$showKind(capture))
+																return $elm$html$Html$text(
+																	A3($author$project$Kind$show, isJa, it, false));
+															}(capture)
 															]));
 												},
 												captures));
@@ -6672,7 +6765,7 @@ var $author$project$Main$view = function (_v0) {
 			}(),
 				A2(
 				$elm$html$Html$table,
-				$author$project$Main$stylesTable,
+				stylesTable,
 				function (it) {
 					return A2(
 						$elm$core$List$append,
@@ -6702,7 +6795,7 @@ var $author$project$Main$view = function (_v0) {
 													[
 														$elm$html$Html$text(
 														$elm$core$String$fromChar(
-															$author$project$Main$jToChar(j)))
+															jToChar(j)))
 													]));
 										},
 										$author$project$ListMisc$iota(9))))
@@ -6731,7 +6824,7 @@ var $author$project$Main$view = function (_v0) {
 													])),
 											A2(
 												$elm$core$List$indexedMap,
-												A4($author$project$Main$squareToTd, turn, board, state, i),
+												A6($author$project$Main$squareToTd, turn, board, state, isJa, blackIsReversed, i),
 												squares)));
 								};
 							},
@@ -6750,177 +6843,291 @@ var $author$project$Main$view = function (_v0) {
 					A2(
 						$elm$html$Html$tr,
 						_List_Nil,
-						A2(
-							$elm$core$List$map,
-							function (_v7) {
-								var content = _v7.a;
-								var align = _v7.b;
-								return A2(
-									$elm$html$Html$td,
-									_List_fromArray(
-										[
-											A2($elm$html$Html$Attributes$style, 'text-align', align)
-										]),
-									_List_fromArray(
-										[
-											$elm$html$Html$text(content)
-										]));
-							},
-							A2(
-								$elm$core$List$append,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$td,
 								_List_fromArray(
 									[
-										_Utils_Tuple2(
-										$author$project$Main$turnSymbol(turn),
-										'right'),
-										_Utils_Tuple2(
-										$elm$core$String$fromInt(turn),
-										'right')
+										A2($elm$html$Html$Attributes$style, 'writing-mode', 'vertical-lr'),
+										A2($elm$html$Html$Attributes$style, 'text-align', 'right')
 									]),
-								function () {
-									var f = F2(
-										function (i, content) {
-											return _Utils_eq(i, -1) ? '' : content;
-										});
-									if (state.$ === 'Moved') {
-										return _List_Nil;
-									} else {
-										var i = state.a;
-										var j = state.b;
-										var piece = state.c;
-										return _List_fromArray(
-											[
-												_Utils_Tuple2(
-												$author$project$Types$showKind(
-													function ($) {
-														return $.kind;
-													}(piece)),
-												'right'),
-												_Utils_Tuple2(
-												A2(
-													f,
-													i,
-													$elm$core$String$fromChar(
-														$author$project$Main$jToChar(j))),
-												'center'),
-												_Utils_Tuple2(
-												A2(
-													f,
-													i,
-													$elm$core$String$fromInt(i)),
-												'center'),
-												_Utils_Tuple2('', 'center'),
-												_Utils_Tuple2('', 'center')
-											]);
-									}
-								}()))),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('player')
+									])),
+								A2(
+								$elm$html$Html$td,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'writing-mode', 'vertical-lr'),
+										A2($elm$html$Html$Attributes$style, 'text-align', 'right')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('turn')
+									])),
+								A2(
+								$elm$html$Html$td,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'writing-mode', 'vertical-lr'),
+										A2($elm$html$Html$Attributes$style, 'text-align', 'right')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('piece')
+									])),
+								A2(
+								$elm$html$Html$td,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'writing-mode', 'vertical-lr'),
+										A2($elm$html$Html$Attributes$style, 'text-align', 'right'),
+										$elm$html$Html$Attributes$colspan(2)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('from')
+									])),
+								A2(
+								$elm$html$Html$td,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'writing-mode', 'vertical-lr'),
+										A2($elm$html$Html$Attributes$style, 'text-align', 'right'),
+										$elm$html$Html$Attributes$colspan(2)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('to')
+									])),
+								A2(
+								$elm$html$Html$td,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'writing-mode', 'vertical-lr'),
+										A2($elm$html$Html$Attributes$style, 'text-align', 'right')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('promotion')
+									]))
+							])),
 					A2(
-						$elm$core$List$indexedMap,
-						function (dTurn) {
-							return function (action) {
-								return A2(
-									$elm$html$Html$tr,
-									_List_Nil,
+						$elm$core$List$cons,
+						A2(
+							$elm$html$Html$tr,
+							_List_Nil,
+							A2(
+								$elm$core$List$map,
+								function (_v7) {
+									var content = _v7.a;
+									var align = _v7.b;
+									return A2(
+										$elm$html$Html$td,
+										_List_fromArray(
+											[
+												A2($elm$html$Html$Attributes$style, 'text-align', align)
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text(content)
+											]));
+								},
+								A2(
+									$elm$core$List$append,
+									_List_fromArray(
+										[
+											_Utils_Tuple2(
+											$author$project$Main$turnSymbol(turn),
+											'center'),
+											_Utils_Tuple2(
+											$elm$core$String$fromInt(turn),
+											'right')
+										]),
 									function () {
-										var turn_ = (turn - 1) - dTurn;
 										var f = F2(
-											function (k, _v6) {
-												var content = _v6.a;
-												var align = _v6.b;
-												return A2(
-													$elm$html$Html$td,
-													_List_fromArray(
-														[
-															A2($elm$html$Html$Attributes$style, 'text-align', align)
-														]),
-													_List_fromArray(
-														[
-															(k === 1) ? A2(
-															$elm$html$Html$a,
-															_List_fromArray(
-																[
-																	$elm$html$Html$Events$onClick(
-																	$author$project$Types$Undo(dTurn)),
-																	A2($elm$html$Html$Attributes$style, 'text-decoration', 'underline')
-																]),
-															_List_fromArray(
-																[
-																	$elm$html$Html$text(content)
-																])) : $elm$html$Html$text(content)
-														]));
+											function (i, content) {
+												return _Utils_eq(i, -1) ? '' : content;
 											});
-										if (action.$ === 'AMove') {
-											var piece = action.a;
-											var i0 = action.b;
-											var j0 = action.c;
-											var i1 = action.d;
-											var j1 = action.e;
-											var isPromoted = action.f;
-											return A2(
-												$elm$core$List$indexedMap,
-												f,
-												_List_fromArray(
-													[
-														_Utils_Tuple2(
-														$author$project$Main$turnSymbol(turn_),
-														'right'),
-														_Utils_Tuple2(
-														$elm$core$String$fromInt(turn_),
-														'right'),
-														_Utils_Tuple2(
-														$author$project$Types$showPiece(piece),
-														'right'),
-														_Utils_Tuple2(
-														$elm$core$String$fromChar(
-															$author$project$Main$jToChar(j0)),
-														'center'),
-														_Utils_Tuple2(
-														$elm$core$String$fromInt(i0),
-														'center'),
-														_Utils_Tuple2(
-														_Utils_eq(j0, j1) ? '' : $elm$core$String$fromChar(
-															$author$project$Main$jToChar(j1)),
-														'center'),
-														_Utils_Tuple2(
-														_Utils_eq(i0, i1) ? '' : $elm$core$String$fromInt(i1),
-														'center'),
-														_Utils_Tuple2(
-														isPromoted ? '+' : '',
-														'left')
-													]));
+										if (state.$ === 'Moved') {
+											return _List_Nil;
 										} else {
-											var kind = action.a;
-											var i = action.b;
-											var j = action.c;
-											return A2(
-												$elm$core$List$indexedMap,
-												f,
-												_List_fromArray(
-													[
-														_Utils_Tuple2(
-														$author$project$Main$turnSymbol(turn_),
-														'right'),
-														_Utils_Tuple2(
-														$elm$core$String$fromInt(turn_),
-														'right'),
-														_Utils_Tuple2(
-														$author$project$Types$showKind(kind),
-														'right'),
-														_Utils_Tuple2('', 'center'),
-														_Utils_Tuple2('', 'center'),
-														_Utils_Tuple2(
+											var i = state.a;
+											var j = state.b;
+											var piece = state.c;
+											return _List_fromArray(
+												[
+													_Utils_Tuple2(
+													A3($author$project$Kind$show, isJa, piece.kind, piece.isPromoted),
+													'center'),
+													_Utils_Tuple2(
+													A2(
+														f,
+														i,
 														$elm$core$String$fromChar(
-															$author$project$Main$jToChar(j)),
-														'center'),
-														_Utils_Tuple2(
-														$elm$core$String$fromInt(i),
-														'center')
-													]));
+															jToChar(j))),
+													'center'),
+													_Utils_Tuple2(
+													A2(
+														f,
+														i,
+														$elm$core$String$fromInt(i)),
+													'center'),
+													_Utils_Tuple2('', 'center'),
+													_Utils_Tuple2('', 'center')
+												]);
 										}
-									}());
-							};
-						},
-						actions)))
+									}()))),
+						A2(
+							$elm$core$List$indexedMap,
+							function (dTurn) {
+								return function (action) {
+									return A2(
+										$elm$html$Html$tr,
+										_List_Nil,
+										function () {
+											var turn_ = (turn - 1) - dTurn;
+											var f = F2(
+												function (k, _v6) {
+													var content = _v6.a;
+													var align = _v6.b;
+													return A2(
+														$elm$html$Html$td,
+														_List_fromArray(
+															[
+																A2($elm$html$Html$Attributes$style, 'text-align', align)
+															]),
+														_List_fromArray(
+															[
+																(k === 1) ? A2(
+																$elm$html$Html$a,
+																_List_fromArray(
+																	[
+																		$elm$html$Html$Events$onClick(
+																		$author$project$Main$Undo(dTurn)),
+																		A2($elm$html$Html$Attributes$style, 'text-decoration', 'underline')
+																	]),
+																_List_fromArray(
+																	[
+																		$elm$html$Html$text(content)
+																	])) : $elm$html$Html$text(content)
+															]));
+												});
+											if (action.$ === 'AMove') {
+												var piece = action.a;
+												var i0 = action.b;
+												var j0 = action.c;
+												var i1 = action.d;
+												var j1 = action.e;
+												var isPromoted = action.f;
+												return A2(
+													$elm$core$List$indexedMap,
+													f,
+													_List_fromArray(
+														[
+															_Utils_Tuple2(
+															$author$project$Main$turnSymbol(turn_),
+															'center'),
+															_Utils_Tuple2(
+															$elm$core$String$fromInt(turn_),
+															'right'),
+															_Utils_Tuple2(
+															A2($author$project$Main$showPiece, isJa, piece),
+															'center'),
+															_Utils_Tuple2(
+															$elm$core$String$fromChar(
+																jToChar(j0)),
+															'center'),
+															_Utils_Tuple2(
+															$elm$core$String$fromInt(i0),
+															'center'),
+															_Utils_Tuple2(
+															_Utils_eq(j0, j1) ? '' : $elm$core$String$fromChar(
+																jToChar(j1)),
+															'center'),
+															_Utils_Tuple2(
+															_Utils_eq(i0, i1) ? '' : $elm$core$String$fromInt(i1),
+															'center'),
+															_Utils_Tuple2(
+															isPromoted ? '+' : '',
+															'center')
+														]));
+											} else {
+												var kind = action.a;
+												var i = action.b;
+												var j = action.c;
+												return A2(
+													$elm$core$List$indexedMap,
+													f,
+													_List_fromArray(
+														[
+															_Utils_Tuple2(
+															$author$project$Main$turnSymbol(turn_),
+															'center'),
+															_Utils_Tuple2(
+															$elm$core$String$fromInt(turn_),
+															'right'),
+															_Utils_Tuple2(
+															A3($author$project$Kind$show, isJa, kind, false),
+															'center'),
+															_Utils_Tuple2('', 'center'),
+															_Utils_Tuple2('', 'center'),
+															_Utils_Tuple2(
+															$elm$core$String$fromChar(
+																jToChar(j)),
+															'center'),
+															_Utils_Tuple2(
+															$elm$core$String$fromInt(i),
+															'center')
+														]));
+											}
+										}());
+								};
+							},
+							actions)))),
+				A2(
+				$elm$html$Html$ul,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'clear', 'both')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$li,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$input,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$type_('checkbox'),
+										$elm$html$Html$Attributes$checked(isJa),
+										$elm$html$Html$Events$onCheck($author$project$Main$CheckboxJa)
+									]),
+								_List_Nil),
+								$elm$html$Html$text('japanese')
+							])),
+						A2(
+						$elm$html$Html$li,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$input,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$type_('checkbox'),
+										$elm$html$Html$Attributes$checked(blackIsReversed),
+										$elm$html$Html$Events$onCheck($author$project$Main$CheckboxBlack)
+									]),
+								_List_Nil),
+								$elm$html$Html$text('reverse black pieces')
+							]))
+					]))
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$sandbox(

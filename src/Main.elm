@@ -2,9 +2,10 @@ module Main exposing (main, update, view)
 
 import Arithmetic exposing (isOdd)
 import Browser
-import Html exposing (a, button, div, input, label, li, table, td, text, tr, ul)
-import Html.Attributes exposing (attribute, checked, style, type_)
+import Html exposing (a, div, input, li, table, td, text, tr, ul)
+import Html.Attributes exposing (checked, colspan, style, type_)
 import Html.Events exposing (onCheck, onClick)
+import Kind exposing (PieceKind)
 import List exposing (all, append, concat, drop, filter, foldl, indexedMap, map, member, repeat, reverse)
 import List.Extra exposing (init, remove, unconsLast)
 import ListMisc exposing (..)
@@ -12,7 +13,71 @@ import Maybe exposing (Maybe(..), withDefault)
 import Maybe.Extra
 import String exposing (fromInt)
 import Tuple exposing (pair)
-import Types exposing (..)
+
+
+type alias Piece =
+    { kind : PieceKind, isBlack : Bool, isPromoted : Bool }
+
+
+showPiece : Bool -> Piece -> String
+showPiece isJa { kind, isPromoted } =
+    Kind.show isJa kind isPromoted
+
+
+type alias Square =
+    Maybe Piece
+
+
+type alias Board =
+    List (List Square)
+
+
+type State
+    = Moved
+    | Touched Int Int Piece
+
+
+type Action
+    = AMove Piece Int Int Int Int Bool
+    | ADrop PieceKind Int Int
+
+
+type alias Model =
+    { turn : Int
+    , board : Board
+    , capturesW : List PieceKind
+    , capturesB : List PieceKind
+    , state : State
+    , actions : List Action
+    , isJa : Bool
+    , blackIsReversed : Bool
+    }
+
+
+type Message
+    = Touch Int Int Piece
+    | Untouch
+    | Move Int Int Bool
+    | Drop Int Int PieceKind
+    | Undo Int
+    | CheckboxJa Bool
+    | CheckboxBlack Bool
+
+
+type alias Color =
+    Maybe Bool
+
+
+color : Square -> Color
+color =
+    Maybe.map .isBlack
+
+
+colorFromIndice : Int -> Int -> Board -> Color
+colorFromIndice i j board =
+    getAt2 i j board
+        |> Maybe.Extra.join
+        |> Maybe.map .isBlack
 
 
 boardEmpty : Board
@@ -25,7 +90,7 @@ boardInitial =
     let
         setPawns isBlack board =
             iota 9
-                |> foldl (\j -> setAt2 2 j <| Just { kind = P, isBlack = isBlack, isPromoted = False }) board
+                |> foldl (\j -> setAt2 2 j <| Just { kind = Kind.P, isBlack = isBlack, isPromoted = False }) board
 
         setSymmetry j kind isBlack board =
             foldl (\j_ -> setAt2 0 j_ <| Just { kind = kind, isBlack = isBlack, isPromoted = False }) board <| [ j, 8 - j ]
@@ -33,10 +98,10 @@ boardInitial =
         setPlayer isBlack board =
             board
                 |> setPawns isBlack
-                |> setAt2 1 1 (Just { kind = B, isBlack = isBlack, isPromoted = False })
-                |> setAt2 1 7 (Just { kind = R, isBlack = isBlack, isPromoted = False })
+                |> setAt2 1 1 (Just { kind = Kind.B, isBlack = isBlack, isPromoted = False })
+                |> setAt2 1 7 (Just { kind = Kind.R, isBlack = isBlack, isPromoted = False })
                 |> (\board_ ->
-                        indexedMap pair [ L, N, S, G, K ] |> foldl (\( j, kind ) -> setSymmetry j kind isBlack) board_
+                        indexedMap pair [ Kind.L, Kind.N, Kind.S, Kind.G, Kind.K ] |> foldl (\( j, kind ) -> setSymmetry j kind isBlack) board_
                    )
     in
     boardEmpty
@@ -229,13 +294,13 @@ canReach i0 j0 piece0 turn board i1 j1 =
             == Just Nothing
             -- two pawns
             && (piece0.kind
-                    /= P
+                    /= Kind.P
                     || (iota 9
                             |> all
                                 (\i ->
                                     case getAt2 i j1 board of
                                         Just (Just piece1) ->
-                                            ( piece1.kind, piece1.isBlack, piece1.isPromoted ) /= ( P, isBlackTurn, False )
+                                            ( piece1.kind, piece1.isBlack, piece1.isPromoted ) /= ( Kind.P, isBlackTurn, False )
 
                                         _ ->
                                             True
@@ -291,35 +356,35 @@ canReach i0 j0 piece0 turn board i1 j1 =
         in
         member ( i1, j1 ) <|
             case ( kind, isPromoted ) of
-                ( P, False ) ->
+                ( Kind.P, False ) ->
                     fixed [ ( 1, 0 ) ]
 
-                ( N, False ) ->
+                ( Kind.N, False ) ->
                     fixed [ ( 2, -1 ), ( 2, 1 ) ]
 
-                ( S, False ) ->
+                ( Kind.S, False ) ->
                     fixed [ ( 1, -1 ), ( 1, 0 ), ( 1, 1 ), ( -1, -1 ), ( -1, 1 ) ]
 
-                ( G, False ) ->
+                ( Kind.G, False ) ->
                     gold
 
-                ( K, False ) ->
+                ( Kind.K, False ) ->
                     fixed <| product [ -1, 0, 1 ] [ -1, 0, 1 ]
 
-                ( L, False ) ->
+                ( Kind.L, False ) ->
                     possibleMoves i0 j0 (\i -> \j -> ( move 1 i, j ))
 
-                ( B, False ) ->
+                ( Kind.B, False ) ->
                     product [ -1, 1 ] [ -1, 1 ]
                         |> map (\( di, dj ) -> possibleMoves i0 j0 (\i -> \j -> ( move di i, move dj j )))
                         |> concat
 
-                ( R, False ) ->
+                ( Kind.R, False ) ->
                     [ ( -1, 0 ), ( 0, -1 ), ( 0, 1 ), ( 1, 0 ) ]
                         |> map (\( di, dj ) -> possibleMoves i0 j0 (\i -> \j -> ( move di i, move dj j )))
                         |> concat
 
-                ( B, True ) ->
+                ( Kind.B, True ) ->
                     (product [ -1, 1 ] [ -1, 1 ]
                         |> map (\( di, dj ) -> possibleMoves i0 j0 (\i -> \j -> ( move di i, move dj j )))
                         |> concat
@@ -330,7 +395,7 @@ canReach i0 j0 piece0 turn board i1 j1 =
                                 |> filter (\( i, j ) -> colorFromIndice i j board /= Just isBlackTurn)
                             )
 
-                ( R, True ) ->
+                ( Kind.R, True ) ->
                     ([ ( -1, 0 ), ( 0, -1 ), ( 0, 1 ), ( 1, 0 ) ]
                         |> map (\( di, dj ) -> possibleMoves i0 j0 (\i -> \j -> ( move di i, move dj j )))
                         |> concat
@@ -383,7 +448,14 @@ squareToTd turn board state isJa blackIsReversed i1 j1 square1 =
             isOdd turn
 
         styles =
-            style "color" "#888" :: stylesTd
+            style "color"
+                (if color square1 == Just False then
+                    "black"
+
+                 else
+                    "white"
+                )
+                :: stylesTd
 
         attributes =
             case state of
@@ -562,14 +634,19 @@ getPosition kind board =
         |> concat
 
 
+isSuicide : Int -> Board -> Bool
+isSuicide turn board =
+    Debug.todo "isSuicide not implemented"
+
+
 isCheck : Int -> Board -> Bool
 isCheck turn board =
-    Debug.todo "isCheck unimplemented"
+    Debug.todo "isCheck not implemented"
 
 
 isCheckmate : Int -> Board -> Bool
 isCheckmate turn board =
-    Debug.todo "isCheckmate unimplemented"
+    Debug.todo "isCheckmate not implemented"
 
 
 turnSymbol turn =
@@ -598,7 +675,7 @@ view { turn, board, capturesW, capturesB, state, actions, isJa, blackIsReversed 
         kindToScale kind =
             let
                 n =
-                    kindToInt kind
+                    Kind.toInt kind
             in
             if n == 0 then
                 "125%"
@@ -623,7 +700,7 @@ view { turn, board, capturesW, capturesB, state, actions, isJa, blackIsReversed 
                 iota 4
                     |> map
                         (\i ->
-                            indexedMap pair (sortKinds kinds)
+                            indexedMap pair (Kind.sort kinds)
                                 |> filter (\( k, _ ) -> modBy 4 k == i)
                         )
           in
@@ -648,11 +725,14 @@ view { turn, board, capturesW, capturesB, state, actions, isJa, blackIsReversed 
                                                                 [ style "border" "1px solid #888" ]
 
                                                              else if 5 <= i then
-                                                                if blackIsReversed then
-                                                                    [ style "background-color" "#000", style "transform" "rotate(180deg)" ]
-
-                                                                else
+                                                                append
                                                                     [ style "background-color" "#000" ]
+                                                                    (if blackIsReversed then
+                                                                        [ style "transform" "rotate(180deg)" ]
+
+                                                                     else
+                                                                        []
+                                                                    )
 
                                                              else
                                                                 []
@@ -670,7 +750,7 @@ view { turn, board, capturesW, capturesB, state, actions, isJa, blackIsReversed 
                                                                         []
                                                             )
                                                     )
-                                                    [ capture |> (\it -> text <| showKind isJa it False) ]
+                                                    [ capture |> (\it -> text <| Kind.show isJa it False) ]
                                             )
                                             captures
                     )
@@ -726,9 +806,9 @@ view { turn, board, capturesW, capturesB, state, actions, isJa, blackIsReversed 
                                 case action of
                                     AMove piece i0 j0 i1 j1 isPromoted ->
                                         indexedMap f
-                                            [ ( turnSymbol turn_, "right" )
+                                            [ ( turnSymbol turn_, "center" )
                                             , ( fromInt <| turn_, "right" )
-                                            , ( showPiece isJa piece, "right" )
+                                            , ( showPiece isJa piece, "center" )
                                             , ( j0 |> jToChar |> String.fromChar, "center" )
                                             , ( fromInt i0, "center" )
                                             , ( if j0 == j1 then
@@ -750,15 +830,15 @@ view { turn, board, capturesW, capturesB, state, actions, isJa, blackIsReversed 
 
                                                 else
                                                     ""
-                                              , "left"
+                                              , "center"
                                               )
                                             ]
 
                                     ADrop kind i j ->
                                         indexedMap f
-                                            [ ( turnSymbol turn_, "right" )
+                                            [ ( turnSymbol turn_, "center" )
                                             , ( fromInt <| turn_, "right" )
-                                            , ( showKind isJa kind False, "right" )
+                                            , ( Kind.show isJa kind False, "center" )
                                             , ( "", "center" )
                                             , ( "", "center" )
                                             , ( j |> jToChar |> String.fromChar, "center" )
@@ -771,7 +851,7 @@ view { turn, board, capturesW, capturesB, state, actions, isJa, blackIsReversed 
                         (map
                             (\( content, align ) -> td [ style "text-align" align ] [ text content ])
                             (append
-                                [ ( turnSymbol turn, "right" )
+                                [ ( turnSymbol turn, "center" )
                                 , ( turn |> fromInt, "right" )
                                 ]
                              <|
@@ -788,7 +868,7 @@ view { turn, board, capturesW, capturesB, state, actions, isJa, blackIsReversed 
                                         []
 
                                     Touched i j piece ->
-                                        [ ( showKind isJa piece.kind piece.isPromoted, "right" )
+                                        [ ( Kind.show isJa piece.kind piece.isPromoted, "center" )
                                         , ( f i (j |> jToChar |> String.fromChar)
                                           , "center"
                                           )
@@ -800,6 +880,27 @@ view { turn, board, capturesW, capturesB, state, actions, isJa, blackIsReversed 
                                         ]
                             )
                         )
+                    )
+                |> (::)
+                    (tr []
+                        [ td [ style "writing-mode" "vertical-lr", style "text-align" "right" ]
+                            [ text "player" ]
+                        , td
+                            [ style "writing-mode" "vertical-lr", style "text-align" "right" ]
+                            [ text "turn" ]
+                        , td
+                            [ style "writing-mode" "vertical-lr", style "text-align" "right" ]
+                            [ text "piece" ]
+                        , td
+                            [ style "writing-mode" "vertical-lr", style "text-align" "right", colspan 2 ]
+                            [ text "from" ]
+                        , td
+                            [ style "writing-mode" "vertical-lr", style "text-align" "right", colspan 2 ]
+                            [ text "to" ]
+                        , td
+                            [ style "writing-mode" "vertical-lr", style "text-align" "right" ]
+                            [ text "promotion" ]
+                        ]
                     )
             )
         , ul [ style "clear" "both" ]
